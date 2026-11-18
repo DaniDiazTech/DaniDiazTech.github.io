@@ -1,0 +1,50 @@
+export type Resource = {
+  title: string;
+  url: string;
+  category: "Lecture" | "Documentation" | "Paper" | "Code";
+  creator: string;
+};
+export type Video = {
+  id?: string;
+  title: string;
+  creator: string;
+  url: string;
+  verified: string;
+  focus: string;
+};
+export type Lesson = {
+  id: string;
+  stage: number;
+  title: string;
+  minutes: number;
+  difficulty: "Foundation" | "Intermediate" | "Advanced";
+  prerequisites: string[];
+  concepts: string[];
+  why: string;
+  objectives: string[];
+  explanation: string[];
+  equation: string;
+  example: string;
+  exercise: string;
+  guidance: string;
+  expected: string;
+  validation: string;
+  mistake: string;
+  question: string;
+  options: string[];
+  answer: number;
+  feedback: string;
+  completion: string[];
+  connection: string;
+  video: string;
+  resources: Resource[];
+  lab: string;
+};
+export type Stage = {
+  id: number;
+  title: string;
+  description: string;
+  outcome: string;
+  assignment: string;
+  short: string;
+};

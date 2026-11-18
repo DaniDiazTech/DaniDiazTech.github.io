@@ -1,0 +1,2596 @@
+{
+  "stages": [
+    {
+      "id": 0,
+      "title": "Orientation & your environment",
+      "description": "Understand the machine you are building, set realistic goals, and make your first C++ experiment.",
+      "outcome": "A reproducible macOS C++20 workspace and a written training budget.",
+      "assignment": "Compile the orientation lab and record hardware, compiler, and available memory.",
+      "short": "Start here"
+    },
+    {
+      "id": 1,
+      "title": "The mathematics of learning",
+      "description": "Refresh shapes, derivatives, probability, and floating-point reasoning through executable examples.",
+      "outcome": "Tested vector operations, a hand-derived gradient, and a stable probability calculation.",
+      "assignment": "Submit worked shape calculations and numerical derivative comparisons.",
+      "short": "Mathematics"
+    },
+    {
+      "id": 2,
+      "title": "Learning from data",
+      "description": "Turn predictions into losses, parameter updates, and honest held-out measurements.",
+      "outcome": "Linear regression and a binary classifier with a clean evaluation split.",
+      "assignment": "Fit synthetic data and report training and validation losses separately.",
+      "short": "Machine learning"
+    },
+    {
+      "id": 3,
+      "title": "Neural networks & backpropagation",
+      "description": "Build scalar reverse-mode autodiff, then train a small neural network without an ML framework.",
+      "outcome": "A C++ micrograd-style engine, checked gradients, and an XOR MLP.",
+      "assignment": "Pass shared-node gradient checks and classify all four XOR inputs.",
+      "short": "Neural networks"
+    },
+    {
+      "id": 4,
+      "title": "A small numerical engine",
+      "description": "Replace scalar operations with tensors while keeping ownership, dimensions, and derivatives visible.",
+      "outcome": "A minimal CPU tensor engine with stable loss and checkpoint round trips.",
+      "assignment": "Validate matmul, broadcasting, reductions, and their backward passes.",
+      "short": "Tensor engine"
+    },
+    {
+      "id": 5,
+      "title": "Your first language model",
+      "description": "Represent text as IDs, estimate next-token probabilities, and generate a first sequence.",
+      "outcome": "A character-level language model with held-out cross-entropy and seeded sampling.",
+      "assignment": "Compare a count bigram against a trained embedding model.",
+      "short": "Language modeling"
+    },
+    {
+      "id": 6,
+      "title": "Build the Transformer",
+      "description": "Assemble causal attention, residual blocks, normalization, and a complete decoder-only training objective.",
+      "outcome": "A miniature GPT that learns from randomly initialized parameters.",
+      "assignment": "Overfit one tiny batch, then evaluate on unseen text.",
+      "short": "Transformer"
+    },
+    {
+      "id": 7,
+      "title": "Apple Silicon acceleration",
+      "description": "Move only verified operations to Metal and MLX, and measure end-to-end performance.",
+      "outcome": "CPU/GPU correctness comparisons and a benchmark on your actual Mac.",
+      "assignment": "Implement one Metal kernel and compare it with CPU and MLX.",
+      "short": "Apple Silicon"
+    },
+    {
+      "id": 8,
+      "title": "Train a modern small GPT",
+      "description": "Make controlled experiments in optimization, architecture, data, compute, and reproducibility.",
+      "outcome": "A trained small GPT, checkpoints, loss curves, throughput, and an honest model card.",
+      "assignment": "Run a measured baseline, resume it, and perform one controlled ablation.",
+      "short": "Training systems"
+    },
+    {
+      "id": 9,
+      "title": "From base model to assistant",
+      "description": "Separate text continuation from useful task behavior; evaluate local pretrained and tuned alternatives.",
+      "outcome": "A local conversational CLI with explicit role formatting and a held-out task suite.",
+      "assignment": "Compare scratch, pretrained, and retrieval baselines on the same prompts.",
+      "short": "Conversation"
+    },
+    {
+      "id": 10,
+      "title": "Specialize & verify",
+      "description": "Build a narrow natural-language-to-rules assistant whose outputs can be checked.",
+      "outcome": "A specialized assistant measured against deterministic and pretrained baselines.",
+      "assignment": "Publish schema-validity, semantic accuracy, and adversarial failure results.",
+      "short": "Specialization"
+    },
+    {
+      "id": 11,
+      "title": "Your engineering capstone",
+      "description": "Package implementation, acceleration, experiments, and limitations into a reproducible project.",
+      "outcome": "A documented C++ model, local assistant, benchmark report, and engineering write-up.",
+      "assignment": "Reproduce the project from a clean checkout and defend every result.",
+      "short": "Capstone"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "00-01",
+      "stage": 0,
+      "title": "What you are building",
+      "minutes": 45,
+      "difficulty": "Foundation",
+      "prerequisites": [],
+      "concepts": ["what you are building"],
+      "why": "Every later component exists to produce and improve this next-token distribution.",
+      "objectives": [
+        "Explain what you are building in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "AI is the broad goal of building systems that perform tasks associated with intelligence. Machine learning fits behavior from examples; deep learning uses layered neural networks. A language model assigns probabilities to token sequences. GPT means Generative Pretrained Transformer: a model trained to continue text using a Transformer architecture. A learned program still has code, but its numerical parameters are fitted instead of being individually specified by the programmer.",
+        "Learning is a search over functions. You choose a family of functions, choose a way to score their outputs, then let an optimizer adjust the numbers inside that family. Data is evidence for those adjustments, not a list of instructions to execute. This explains both the flexibility and the failure modes: a model can find a pattern that scores well on examples while missing the rule you intended.",
+        "Our learning-scale GPT starts with random weights and a tiny corpus. Its first success is a tested forward/backward computation and better held-out prediction than a baseline. The practical assistant has a different bar: translating unseen requirements correctly. We will compare pretrained models and deterministic rules rather than expecting the small educational GPT to know the world."
+      ],
+      "equation": "p(x_{1:T})=\\prod_{t=1}^{T}p(x_t\\mid x_{<t})",
+      "example": "For the text “a cat”, a character model predicts one next character at a time. Given “a ca”, it might assign 0.7 to t and 0.1 to r. This is a probability distribution, not a database lookup.",
+      "exercise": "Write a two-column design note: educational GPT from scratch versus a useful rules assistant. Give each a dataset, metric, and non-goal. Compile orientation.cpp.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "The executable reports dot=11. Your note evaluates the assistant on unseen requirements, not fluent prose.",
+      "validation": "The executable reports dot=11. Your note evaluates the assistant on unseen requirements, not fluent prose.",
+      "mistake": "A tiny trained model is not automatically a generally capable chatbot.",
+      "question": "What does a base language model predict?",
+      "options": [
+        "A distribution over the next token",
+        "A guaranteed true answer",
+        "There is not enough information to decide"
+      ],
+      "answer": 0,
+      "feedback": "For the text “a cat”, a character model predicts one next character at a time. Given “a ca”, it might assign 0.7 to t and 0.1 to r. This is a probability distribution, not a database lookup. A tiny trained model is not automatically a generally capable chatbot.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Every later component exists to produce and improve this next-token distribution.",
+      "video": "neurons",
+      "resourceKeys": ["zero", "nn"],
+      "lab": "orientation"
+    },
+    {
+      "id": "00-02",
+      "stage": 0,
+      "title": "Training, inference & model dimensions",
+      "minutes": 55,
+      "difficulty": "Foundation",
+      "prerequisites": ["00-01"],
+      "concepts": ["training", "inference ", "model dimensions"],
+      "why": "Correct dimension bookkeeping prevents nearly every early GPT implementation error.",
+      "objectives": [
+        "Explain training, inference & model dimensions in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Training computes predictions, measures a loss, differentiates it, and updates parameters. Inference uses fixed parameters to predict. Parameters are learned numbers; tokens are units of input; context length is how many positions the model can attend to. An activation is an intermediate value for one input, not a persistent parameter. Teacher forcing trains many next-token targets in parallel with a causal mask.",
+        "One forward pass can be used during both training and inference. Training additionally retains information needed for derivatives and updates the weights after measuring error. Autoregressive inference repeatedly feeds a growing prefix through the model; sampling a token does not by itself update any parameter.",
+        "Write a shape beside every arrow in your model diagram. A batch of token IDs is B×T; embedding lookup turns it into B×T×C; the final projection produces B×T×V logits. The target remains B×T integer IDs. You do not need a B×T×V one-hot target allocation to compute cross-entropy."
+      ],
+      "equation": "X\\in\\mathbb{R}^{B\\times T\\times C}",
+      "example": "For batch B=2, context T=8, and width C=16, the activation contains 256 values. A vocabulary of 32 needs 32×16=512 token-embedding parameters, regardless of the current batch size.",
+      "exercise": "Draw the path text → IDs → embeddings → decoder → logits → probabilities. Label which arrays change with the input and which are learned.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Your drawing keeps the embedding table fixed during inference and shifts training targets by one position.",
+      "validation": "Your drawing keeps the embedding table fixed during inference and shifts training targets by one position.",
+      "mistake": "Increasing context length does not directly increase the embedding vocabulary.",
+      "question": "Which changes during an ordinary inference forward pass?",
+      "options": [
+        "Trained weights",
+        "Activations",
+        "There is not enough information to decide"
+      ],
+      "answer": 1,
+      "feedback": "For batch B=2, context T=8, and width C=16, the activation contains 256 values. A vocabulary of 32 needs 32×16=512 token-embedding parameters, regardless of the current batch size. Increasing context length does not directly increase the embedding vocabulary.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Correct dimension bookkeeping prevents nearly every early GPT implementation error.",
+      "video": "gpt",
+      "resourceKeys": ["zero", "nn"],
+      "lab": "orientation"
+    },
+    {
+      "id": "00-03",
+      "stage": 0,
+      "title": "A realistic Apple Silicon budget",
+      "minutes": 60,
+      "difficulty": "Foundation",
+      "prerequisites": ["00-02"],
+      "concepts": ["a realistic apple silicon budget"],
+      "why": "The budget determines safe batch size, context, and architecture before an expensive run.",
+      "objectives": [
+        "Explain a realistic apple silicon budget in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "CPU code is the simplest correctness reference. GPUs execute many similar operations in parallel and benefit from sufficiently large workloads. CUDA is NVIDIA’s platform; Metal is Apple’s compute API; MLX supplies arrays and autodiff optimized for Apple Silicon. Unified memory reduces some explicit transfers but does not make allocation free or capacity infinite. Measure your Mac rather than assuming a memory tier from its chip name.",
+        "Begin with a small benchmark that you can repeat in seconds. A larger parameter count changes not only the number of weights but also intermediate activations, matrix dimensions, optimizer storage, and how well the GPU is utilized. Therefore throughput from one tiny configuration cannot be extrapolated linearly without a measurement.",
+        "Use decimal MB for a rough parameter-storage calculation and binary GiB for operating-system memory capacity; label the units. Activity Monitor and runtime allocation counters measure different things. Leave room for the operating system, browser, compiler, and temporary training allocations. If memory pressure causes swapping, reduce the experiment before drawing performance conclusions."
+      ],
+      "equation": "M_{\\mathrm{weights}}=P\\cdot s",
+      "example": "One million float32 parameters need about 4 MB for weights alone. Gradients and two float32 Adam moments add about 12 MB. Activations, allocator overhead, and other applications require additional memory.",
+      "exercise": "Record sysctl -n hw.memsize, system_profiler SPHardwareDataType, compiler version, and free storage. Create a budget with separate parameters, gradients, moments, and activations.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "The note reports bytes and GiB explicitly, leaves headroom, and proposes a 100K-parameter first run before any 5–15M experiment.",
+      "validation": "The note reports bytes and GiB explicitly, leaves headroom, and proposes a 100K-parameter first run before any 5–15M experiment.",
+      "mistake": "Unified memory does not mean GPU work can ignore synchronization or memory limits.",
+      "question": "Does fitting the weight file prove training will fit?",
+      "options": [
+        "There is not enough information to decide",
+        "Yes; unified memory makes those free",
+        "No; gradients, optimizer state, and activations also consume memory"
+      ],
+      "answer": 2,
+      "feedback": "One million float32 parameters need about 4 MB for weights alone. Gradients and two float32 Adam moments add about 12 MB. Activations, allocator overhead, and other applications require additional memory. Unified memory does not mean GPU work can ignore synchronization or memory limits.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "The budget determines safe batch size, context, and architecture before an expensive run.",
+      "video": "appleCompute",
+      "resourceKeys": ["zero", "nn"],
+      "lab": "orientation"
+    },
+    {
+      "id": "00-04",
+      "stage": 0,
+      "title": "Set up Clang, CMake & C++20",
+      "minutes": 75,
+      "difficulty": "Foundation",
+      "prerequisites": ["00-03"],
+      "concepts": ["set up clang", "cmake ", "c++20"],
+      "why": "A repeatable build and failing checks support every later model experiment.",
+      "objectives": [
+        "Explain set up clang, cmake & c++20 in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A reproducible numerical experiment needs a compiler, a build recipe, and a test that can fail. Apple’s command line tools provide Clang and the macOS SDK. CMake generates build files; it does not replace the compiler. Begin with double precision and warnings enabled. Keep the training program independent of Python so every important operation remains inspectable.",
+        "Treat compiler diagnostics as part of the lesson. A signed/unsigned comparison warning can reveal a real indexing bug, and an out-of-bounds write can corrupt a gradient long before a crash. Use -Wall -Wextra during normal builds. For a small debugging fixture, add -g -fsanitize=address,undefined and remove aggressive optimization.",
+        "Keep a short README with the exact compiler command and observed output. CMake should produce the same program as a direct Clang invocation. Do not install a neural-network framework to solve this first exercise: the purpose is to know what code runs and why a test fails."
+      ],
+      "equation": "\\mathrm{dot}(a,b)=\\sum_i a_i b_i",
+      "example": "With a=[1,2] and b=[3,4], dot=1×3+2×4=11. This tiny result exercises storage, iteration, and a test assertion before introducing learning.",
+      "exercise": "Run xcode-select --install if tools are absent. Download the lab bundle, compile orientation.cpp with clang++ -std=c++20 -Wall -Wextra, and intentionally change the expected dot product.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Correct code exits zero; changing the expected dot product to 12 must fail with a useful message. Install CMake with brew install cmake if you choose that build path.",
+      "validation": "Correct code exits zero; changing the expected dot product to 12 must fail with a useful message. Install CMake with brew install cmake if you choose that build path.",
+      "mistake": "A successful compilation alone says nothing about numerical correctness.",
+      "question": "What should a failed numerical test do?",
+      "options": [
+        "Return a nonzero exit code",
+        "Print success and continue",
+        "There is not enough information to decide"
+      ],
+      "answer": 0,
+      "feedback": "With a=[1,2] and b=[3,4], dot=1×3+2×4=11. This tiny result exercises storage, iteration, and a test assertion before introducing learning. A successful compilation alone says nothing about numerical correctness.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "A repeatable build and failing checks support every later model experiment.",
+      "video": "micrograd",
+      "resourceKeys": ["zero", "nn"],
+      "lab": "orientation"
+    },
+    {
+      "id": "00-05",
+      "stage": 0,
+      "title": "First experiment: predict, measure, improve",
+      "minutes": 60,
+      "difficulty": "Foundation",
+      "prerequisites": ["00-04"],
+      "concepts": ["first experiment", "predict", "measure", "improve"],
+      "why": "The GPT training loop will replace this scalar function with next-token cross-entropy.",
+      "objectives": [
+        "Explain first experiment: predict, measure, improve in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Before neural networks, treat a model as a function with one adjustable number. For y-hat=w x and target y, squared error measures how far the prediction misses. Try several weights manually before computing gradients. This separates the model, the objective, and the update rule. Those three roles remain separate even in a GPT with millions of parameters.",
+        "Separate a prediction from its score. The prediction 4 is a model output; the target 6 is an observation; the loss 4 is a comparison between them. Changing the target changes the objective even if the model code is unchanged. Changing the weight changes the prediction. This separation will make the training loop easier to debug.",
+        "Before optimizing anything, enumerate a few candidate weights and plot their losses by hand. The minimum of this one-example problem is simple enough to find exactly. In later models that exact search becomes impossible, but the distinction between model, objective, and optimizer stays the same."
+      ],
+      "equation": "L(w)=(wx-y)^2",
+      "example": "Take x=2 and y=6. At w=1 the prediction is 2 and loss is 16. At w=2 prediction is 4 and loss is 4. At w=3 loss is zero.",
+      "exercise": "Write a loop over w=0,1,2,3,4. Print the prediction and loss for x=2,y=6. Put the calculation in a pure function so you can test it.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Losses are 36,16,4,0,4. Explain why increasing the weight beyond 3 makes the loss rise again.",
+      "validation": "Losses are 36,16,4,0,4. Explain why increasing the weight beyond 3 makes the loss rise again.",
+      "mistake": "An optimizer minimizes an objective; it does not decide whether the chosen objective matches your real goal.",
+      "question": "Which weight minimizes this example?",
+      "options": ["6", "3", "There is not enough information to decide"],
+      "answer": 1,
+      "feedback": "Take x=2 and y=6. At w=1 the prediction is 2 and loss is 16. At w=2 prediction is 4 and loss is 4. At w=3 loss is zero. An optimizer minimizes an objective; it does not decide whether the chosen objective matches your real goal.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "The GPT training loop will replace this scalar function with next-token cross-entropy.",
+      "video": "descent",
+      "resourceKeys": ["zero", "nn"],
+      "lab": "orientation"
+    },
+    {
+      "id": "01-01",
+      "stage": 1,
+      "title": "Vectors, dot products & representations",
+      "minutes": 45,
+      "difficulty": "Foundation",
+      "prerequisites": ["00-05"],
+      "concepts": ["vectors", "dot products ", "representations"],
+      "why": "An embedding is a learned vector; linear layers repeatedly compute weighted sums.",
+      "objectives": [
+        "Explain vectors, dot products & representations in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A scalar is one number. A vector is an ordered collection of numbers with a consistent interpretation for each coordinate. A tensor generalizes arrays to any number of axes. Addition combines corresponding coordinates; scaling multiplies them all. A dot product is a weighted sum and becomes a neuron’s basic computation. Its geometric interpretation is signed alignment, not a similarity bounded to [0,1].",
+        "An ordered list is meaningful only when you keep the coordinate convention fixed. If the first entry means height and the second means weight, swapping entries changes the input. Learned representations usually have no human-assigned meaning per coordinate, but their order must still be consistent across layers.",
+        "Implement the dot product with an accumulator initialized to zero. Verify symmetry and bilinearity on small examples: dot(a+b,c)=dot(a,c)+dot(b,c). These are useful properties, but they do not replace a concrete expected-value test because two incorrect implementations can agree with one another."
+      ],
+      "equation": "a^Tb=\\sum_{i=1}^{n}a_i b_i",
+      "example": "For a=[2,-1,3], b=[4,2,0], a·b=8-2+0=6. Adding [1,1,1] produces [3,0,4]; scaling by -2 produces [-4,2,-6].",
+      "exercise": "Implement add, scale, and dot using std::vector<double>. Reject length mismatches. Test a zero vector, a negative vector, and an empty vector with a documented convention.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "dot([1,2],[3,4])=11, dot(a,b)=dot(b,a), and mismatched sizes throw std::invalid_argument.",
+      "validation": "dot([1,2],[3,4])=11, dot(a,b)=dot(b,a), and mismatched sizes throw std::invalid_argument.",
+      "mistake": "Vector length and vector dimension are different: norm is a magnitude; dimension counts coordinates.",
+      "question": "What is [1,2]·[3,4]?",
+      "options": ["There is not enough information to decide", "[3,8]", "11"],
+      "answer": 2,
+      "feedback": "For a=[2,-1,3], b=[4,2,0], a·b=8-2+0=6. Adding [1,1,1] produces [3,0,4]; scaling by -2 produces [-4,2,-6]. Vector length and vector dimension are different: norm is a magnitude; dimension counts coordinates.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "An embedding is a learned vector; linear layers repeatedly compute weighted sums.",
+      "video": "vectors",
+      "resourceKeys": ["math", "nn"],
+      "lab": "gradient"
+    },
+    {
+      "id": "01-02",
+      "stage": 1,
+      "title": "Matrices, transformations & shapes",
+      "minutes": 55,
+      "difficulty": "Foundation",
+      "prerequisites": ["01-01"],
+      "concepts": ["matrices", "transformations ", "shapes"],
+      "why": "GPT projections map a batch of token vectors into Q, K, V, and vocabulary logits.",
+      "objectives": [
+        "Explain matrices, transformations & shapes in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A matrix can represent a linear transformation or a batch of vectors. We use row-major storage and batch rows: X has B rows and D features, and W has D rows and H output features. Each output entry is a row-column dot product. A bias has H entries and is added to each batch row. Matrix multiplication is not elementwise multiplication.",
+        "A linear transformation is fully described by what it does to basis vectors. In the column-vector convention, matrix columns describe those images. In this course our batches contain row vectors, so we write XW; the same geometry is represented with the appropriate orientation. Consistency matters more than memorizing one convention.",
+        "Use rectangular matrices in every test suite. Square matrices hide many accidental transposes because the shapes still fit. A 2×3 by 3×4 fixture exposes whether you kept the reduction dimension separate from output dimensions. Only after the reference works should you change loop order for cache reuse."
+      ],
+      "equation": "X_{B\\times D}W_{D\\times H}=Y_{B\\times H}",
+      "example": "[[1,2],[3,4]] times [[5],[6]] is [[17],[39]]. The inner dimensions are both 2; the output keeps the outer dimensions 2 and 1.",
+      "exercise": "Write a three-loop matmul. Add shape checks before accessing memory. Use the tensor-shape playground to predict (2×3)(3×4), then verify with your code.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "The output shape is 2×4. Multiplying 2×3 by 2×4 must fail before indexing storage.",
+      "validation": "The output shape is 2×4. Multiplying 2×3 by 2×4 must fail before indexing storage.",
+      "mistake": "AB and BA can differ or one can be undefined.",
+      "question": "What is the output shape of (2×3)(3×4)?",
+      "options": ["2×4", "3×3", "There is not enough information to decide"],
+      "answer": 0,
+      "feedback": "[[1,2],[3,4]] times [[5],[6]] is [[17],[39]]. The inner dimensions are both 2; the output keeps the outer dimensions 2 and 1. AB and BA can differ or one can be undefined.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "GPT projections map a batch of token vectors into Q, K, V, and vocabulary logits.",
+      "video": "matrices",
+      "resourceKeys": ["math", "nn"],
+      "lab": "gradient"
+    },
+    {
+      "id": "01-03",
+      "stage": 1,
+      "title": "Derivatives, partials & the chain rule",
+      "minutes": 60,
+      "difficulty": "Foundation",
+      "prerequisites": ["01-02"],
+      "concepts": ["derivatives", "partials ", "the chain rule"],
+      "why": "Backpropagation applies precisely this local rule across the full decoder graph.",
+      "objectives": [
+        "Explain derivatives, partials & the chain rule in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A derivative measures local sensitivity: how much the output changes per small input change. A partial derivative varies one coordinate while holding the others fixed. The gradient collects partial derivatives of a scalar loss. A Jacobian collects derivatives of a vector output. The chain rule multiplies sensitivities along a path and adds contributions from multiple paths.",
+        "For a scalar output with many inputs, the gradient tells you each input’s local influence while other inputs are held fixed. It is a local statement: a finite step can move into a region where the derivative changes. This is why an optimizer must recompute derivatives after every forward pass.",
+        "Centered differences use two function evaluations: [f(x+h)-f(x-h)]/(2h). Truncation error decreases with h for a smooth function, but floating-point cancellation eventually dominates. Sweep several h values and look for a stable agreement region instead of assuming the smallest h is best."
+      ],
+      "equation": "\\frac{d f(g(x))}{dx}=f\\prime(g(x))g\\prime(x)",
+      "example": "Let u=2x+1 and L=u². At x=3, u=7, dL/du=14, du/dx=2, so dL/dx=28. Centered finite differences with h=1e-5 give approximately 28.",
+      "exercise": "Implement a centered-difference helper. Check x² and (2x+1)² at positive, zero, and negative x. Try h from 1e-2 to 1e-12.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "At x=3 your analytic derivative is 28. Very small h eventually worsens agreement because subtraction loses precision.",
+      "validation": "At x=3 your analytic derivative is 28. Very small h eventually worsens agreement because subtraction loses precision.",
+      "mistake": "The derivative is not the output value, and a gradient is not the parameter update.",
+      "question": "For L=(2x+1)² at x=3, what is dL/dx?",
+      "options": ["14", "28", "There is not enough information to decide"],
+      "answer": 1,
+      "feedback": "Let u=2x+1 and L=u². At x=3, u=7, dL/du=14, du/dx=2, so dL/dx=28. Centered finite differences with h=1e-5 give approximately 28. The derivative is not the output value, and a gradient is not the parameter update.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Backpropagation applies precisely this local rule across the full decoder graph.",
+      "video": "micrograd",
+      "resourceKeys": ["math", "nn"],
+      "lab": "gradient"
+    },
+    {
+      "id": "01-04",
+      "stage": 1,
+      "title": "Probability, logarithms & cross-entropy",
+      "minutes": 75,
+      "difficulty": "Foundation",
+      "prerequisites": ["01-03"],
+      "concepts": ["probability", "logarithms ", "cross-entropy"],
+      "why": "Every GPT output position contributes a next-token negative log likelihood.",
+      "objectives": [
+        "Explain probability, logarithms & cross-entropy in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A discrete distribution assigns nonnegative probabilities summing to one. Conditional probability uses available context. Expectation is a probability-weighted average. Entropy measures uncertainty; cross-entropy measures how much probability a model assigns to targets from another distribution. Natural logarithms make products of sequence probabilities into sums. A one-hot target gives loss -log p(correct).",
+        "Imagine paying a penalty whenever your model is surprised by the true outcome. Giving probability 1 to that outcome costs zero; giving probability 0.01 costs about 4.605 nats. The penalty becomes arbitrarily large as target probability approaches zero. This is why confident mistakes matter even if top-1 accuracy is unchanged.",
+        "The model distribution p is compared with a target distribution q. For next-token training q is usually one-hot, so the entire sum reduces to the target log probability. Entropy is the special case where the two distributions match. Conditional language modeling repeats this comparison for each context in the dataset."
+      ],
+      "equation": "H(q,p)=-\\sum_i q_i\\log p_i",
+      "example": "For p=[0.1,0.7,0.2] and target index 1, loss=-ln(0.7)≈0.356675 nats. A uniform three-way guess has loss ln(3)≈1.098612.",
+      "exercise": "Implement negative log likelihood for a target ID. Reject probabilities outside (0,1]. Compare two predictions for the same target and explain their ordering.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Assigning 0.7 to the target gives less loss than assigning 0.2. Never use the test set to choose the better hyperparameters.",
+      "validation": "Assigning 0.7 to the target gives less loss than assigning 0.2. Never use the test set to choose the better hyperparameters.",
+      "mistake": "Cross-entropy is not classification accuracy. A confident wrong prediction can have extremely high loss.",
+      "question": "Which target probability has the lowest loss?",
+      "options": ["There is not enough information to decide", "0.1", "0.9"],
+      "answer": 2,
+      "feedback": "For p=[0.1,0.7,0.2] and target index 1, loss=-ln(0.7)≈0.356675 nats. A uniform three-way guess has loss ln(3)≈1.098612. Cross-entropy is not classification accuracy. A confident wrong prediction can have extremely high loss.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Every GPT output position contributes a next-token negative log likelihood.",
+      "video": "makemore",
+      "resourceKeys": ["math", "nn"],
+      "lab": "gradient"
+    },
+    {
+      "id": "01-05",
+      "stage": 1,
+      "title": "Floating-point stability & gradient descent",
+      "minutes": 60,
+      "difficulty": "Foundation",
+      "prerequisites": ["01-04"],
+      "concepts": ["floating-point stability ", "gradient descent"],
+      "why": "Optimization and stability are prerequisites for every successful training run.",
+      "objectives": [
+        "Explain floating-point stability & gradient descent in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Floating-point arithmetic rounds, so algebraically identical formulas can behave differently. A gradient points uphill locally. Subtracting a small multiple of it moves downhill for a sufficiently small step. The learning rate controls this step; too large a rate can oscillate or diverge. Use stable formulas and double-precision references before optimizing.",
+        "For the quadratic, subtract the optimum from both sides of the update: w_next-3=(1-2η)(w-3). The distance shrinks exactly when |1-2η|<1, which gives 0<η<1. At η=1 the sign flips without shrinking; above 1 the magnitude grows. This derivation explains the observed trajectory rather than merely naming it divergence.",
+        "Stable formulas preserve the mathematical function while avoiding avoidable overflow or cancellation. Start with float64 to make debugging easier; later compare float32 against it. A finite result is necessary but not sufficient: always compare to an independent worked fixture."
+      ],
+      "equation": "w_{t+1}=w_t-\\eta\\,2(w_t-3)",
+      "example": "For L=(w-3)², w=0, η=0.1: gradient=-6, next w=0.6, new loss=5.76 instead of 9. At η=1 the sequence alternates between 0 and 6.",
+      "exercise": "Run gradient.cpp. Reimplement its update without looking at the solution; log w, gradient, and loss for 50 iterations. Compare η=0.1,1,1.1 in the playground.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "For η=0.1 loss decreases toward zero. η=1 oscillates for this quadratic; η>1 diverges. Report why this bound is specific to this loss.",
+      "validation": "For η=0.1 loss decreases toward zero. η=1 oscillates for this quadratic; η>1 diverges. Report why this bound is specific to this loss.",
+      "mistake": "Subtract the gradient; adding it performs ascent. A universal safe learning rate does not exist.",
+      "question": "Where does w=0 move with η=0.1?",
+      "options": ["0.6", "-0.6", "There is not enough information to decide"],
+      "answer": 0,
+      "feedback": "For L=(w-3)², w=0, η=0.1: gradient=-6, next w=0.6, new loss=5.76 instead of 9. At η=1 the sequence alternates between 0 and 6. Subtract the gradient; adding it performs ascent. A universal safe learning rate does not exist.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Optimization and stability are prerequisites for every successful training run.",
+      "video": "descent",
+      "resourceKeys": ["math", "nn"],
+      "lab": "gradient"
+    },
+    {
+      "id": "02-01",
+      "stage": 2,
+      "title": "Data, targets & self-supervision",
+      "minutes": 45,
+      "difficulty": "Foundation",
+      "prerequisites": ["01-05"],
+      "concepts": ["data", "targets ", "self-supervision"],
+      "why": "This exact data interface feeds your decoder-only Transformer.",
+      "objectives": [
+        "Explain data, targets & self-supervision in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Supervised learning uses examples with target outputs. Self-supervision creates targets from the input data itself: language modeling shifts the token sequence by one. Data provenance, duplicates, and accidental overlap can invalidate evaluation. Split at document or source level before creating overlapping training windows.",
+        "A label is the target used by an objective, not necessarily an annotation made by a human. In language modeling, shifting a sequence constructs labels automatically. That makes web text convenient, but it does not remove concerns about copyright, privacy, contamination, duplication, or quality.",
+        "Overlapping windows from a single document can share most of their content. Splitting those windows randomly across training and validation makes the validation examples too familiar. Assign complete documents to splits first; then derive windows separately inside each split. Save source IDs so you can audit the boundary."
+      ],
+      "equation": "(x_0,\\ldots,x_{T-1})\\mapsto(x_1,\\ldots,x_T)",
+      "example": "For IDs [2,5,1,4], inputs [2,5,1] have targets [5,1,4]. Three training positions come from one four-token sequence.",
+      "exercise": "Write a window builder with context 3 and explicit source IDs. Split your own short documents into train/validation/test before making windows.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "The target at every position is the immediately following token; no source ID appears in more than one split.",
+      "validation": "The target at every position is the immediately following token; no source ID appears in more than one split.",
+      "mistake": "Self-supervision does not mean no target or no loss.",
+      "question": "Where do next-token targets come from?",
+      "options": [
+        "Human sentiment labels",
+        "The next position in the original sequence",
+        "There is not enough information to decide"
+      ],
+      "answer": 1,
+      "feedback": "For IDs [2,5,1,4], inputs [2,5,1] have targets [5,1,4]. Three training positions come from one four-token sequence. Self-supervision does not mean no target or no loss.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "This exact data interface feeds your decoder-only Transformer.",
+      "video": "mlp",
+      "resourceKeys": ["course", "micrograd"],
+      "lab": "gradient"
+    },
+    {
+      "id": "02-02",
+      "stage": 2,
+      "title": "Linear regression & mean squared error",
+      "minutes": 55,
+      "difficulty": "Foundation",
+      "prerequisites": ["02-01"],
+      "concepts": ["linear regression ", "mean squared error"],
+      "why": "This is your first complete parameterized training loop.",
+      "objectives": [
+        "Explain linear regression & mean squared error in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Linear regression fits a weighted sum and bias to numerical targets. Mean squared error averages squared residuals so the objective is comparable across batch sizes. Differentiate the mean as well as each residual. Keep prediction, loss, gradient, and update in separate functions to expose mistakes.",
+        "Differentiate a single residual first. If r_i=wx_i+b-y_i, then d(r_i²)/dw=2r_i x_i and d(r_i²)/db=2r_i. Sum the terms and divide by the number of examples. You should be able to derive both gradients on paper before using the optimizer.",
+        "Large input scales can make a reasonable-looking learning rate unstable. Try x values near 1 before values near 10,000. Standardizing features changes the optimization geometry; it does not create information that the data lacked. Record your preprocessing along with the learned coefficients."
+      ],
+      "equation": "L=\\frac1N\\sum_i(wx_i+b-y_i)^2",
+      "example": "For x=[1,2], y=[3,5], w=b=0: L=17, dL/dw=-13, dL/db=-8. With η=0.01 the next w=0.13 and b=0.08.",
+      "exercise": "Implement regression on y=2x+1 using 20 deterministic points. Compute analytic gradients and compare each parameter to centered differences before training.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Recover w≈2 and b≈1 with low loss; relative gradient error is below 1e-5 away from zero gradients.",
+      "validation": "Recover w≈2 and b≈1 with low loss; relative gradient error is below 1e-5 away from zero gradients.",
+      "mistake": "Omitting 1/N makes gradient magnitude depend on dataset size.",
+      "question": "What are the initial gradients in the worked example?",
+      "options": [
+        "There is not enough information to decide",
+        "(-26,-16)",
+        "(-13,-8)"
+      ],
+      "answer": 2,
+      "feedback": "For x=[1,2], y=[3,5], w=b=0: L=17, dL/dw=-13, dL/db=-8. With η=0.01 the next w=0.13 and b=0.08. Omitting 1/N makes gradient magnitude depend on dataset size.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "This is your first complete parameterized training loop.",
+      "video": "descent",
+      "resourceKeys": ["course", "micrograd"],
+      "lab": "gradient"
+    },
+    {
+      "id": "02-03",
+      "stage": 2,
+      "title": "Binary classification & decision boundaries",
+      "minutes": 60,
+      "difficulty": "Foundation",
+      "prerequisites": ["02-02"],
+      "concepts": ["binary classification ", "decision boundaries"],
+      "why": "Stable classification losses prepare you for vocabulary cross-entropy.",
+      "objectives": [
+        "Explain binary classification & decision boundaries in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A binary classifier predicts a probability through the sigmoid of a logit. A logit is an unrestricted score; the sigmoid maps it to (0,1). Binary cross-entropy penalizes wrong confidence. Use the stable logit loss instead of taking log of a rounded sigmoid. Thresholding is for reporting decisions, not for the differentiable training path.",
+        "The sigmoid is σ(z)=1/(1+exp(-z)). Its output is a probability, while the logit z remains an unrestricted real number. The derivative of stable binary cross-entropy with respect to the logit simplifies to σ(z)-y; this is often easier and more stable than separately differentiating logarithms of probabilities.",
+        "Use OR before XOR because its solution is linearly separable. Plot the four input points and draw a boundary for OR. Try to draw a single straight boundary for XOR: opposite corners belong to the same class, so a linear classifier cannot separate them. That failure motivates a hidden nonlinear layer."
+      ],
+      "equation": "\\ell(z,y)=\\max(z,0)-zy+\\log(1+e^{-|z|})",
+      "example": "For z=0, sigmoid=0.5 and either target has loss ln2≈0.6931. With y=1 the derivative sigmoid(z)-y=-0.5, so gradient descent raises the logit.",
+      "exercise": "Fit an OR classifier using two inputs and a bias. Implement stable binary loss and report probability plus thresholded prediction for all four rows.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "All four OR labels are correct; loss stays finite for logits -1000 and 1000. Explain why one linear boundary cannot solve XOR.",
+      "validation": "All four OR labels are correct; loss stays finite for logits -1000 and 1000. Explain why one linear boundary cannot solve XOR.",
+      "mistake": "A hard threshold has no useful derivative for gradient training.",
+      "question": "For z=0,y=1, what is dL/dz?",
+      "options": ["-0.5", "0.5", "There is not enough information to decide"],
+      "answer": 0,
+      "feedback": "For z=0, sigmoid=0.5 and either target has loss ln2≈0.6931. With y=1 the derivative sigmoid(z)-y=-0.5, so gradient descent raises the logit. A hard threshold has no useful derivative for gradient training.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Stable classification losses prepare you for vocabulary cross-entropy.",
+      "video": "neurons",
+      "resourceKeys": ["course", "micrograd"],
+      "lab": "gradient"
+    },
+    {
+      "id": "02-04",
+      "stage": 2,
+      "title": "SGD, mini-batches & hyperparameters",
+      "minutes": 75,
+      "difficulty": "Foundation",
+      "prerequisites": ["02-03"],
+      "concepts": ["sgd", "mini-batches ", "hyperparameters"],
+      "why": "Efficient GPU training still relies on a correct batch-level objective.",
+      "objectives": [
+        "Explain sgd, mini-batches & hyperparameters in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Full-batch descent uses every training example per update. Stochastic gradient descent estimates the gradient from a sampled example or mini-batch. An iteration is one update; an epoch is one pass through the dataset. Batch size, learning rate, and model width are hyperparameters chosen outside gradient optimization. Shuffle with a recorded seed and handle the final partial batch.",
+        "A mini-batch gradient is a noisy estimate of the full-data gradient. Noise can be useful, but it also makes single-step loss changes less informative. Plot an averaged training loss over many steps, and evaluate the same fixed validation set at consistent intervals.",
+        "To compare batch sizes, specify whether the experiment fixes epochs, optimizer updates, or tokens processed. These are different budgets. Keep the random seed and dataset order when possible, but do not expect bitwise identical optimization trajectories after changing the grouping of examples."
+      ],
+      "equation": "g_B=\\frac1{|B|}\\sum_{i\\in B}\\nabla_\\theta\\ell_i",
+      "example": "With 10 examples and batch size 4, a complete epoch has batches of 4,4,2: three updates. Averaging by 4 in the final batch incorrectly halves its gradient.",
+      "exercise": "Add deterministic shuffling and mini-batches to regression. Log epoch, update number, examples processed, and loss. Compare batch sizes 1,4,20.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Every example appears once per epoch; the last partial batch is averaged by its actual size.",
+      "validation": "Every example appears once per epoch; the last partial batch is averaged by its actual size.",
+      "mistake": "An epoch and an iteration are not interchangeable.",
+      "question": "How many updates for 10 examples in batches of 4?",
+      "options": ["2", "3", "There is not enough information to decide"],
+      "answer": 1,
+      "feedback": "With 10 examples and batch size 4, a complete epoch has batches of 4,4,2: three updates. Averaging by 4 in the final batch incorrectly halves its gradient. An epoch and an iteration are not interchangeable.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Efficient GPU training still relies on a correct batch-level objective.",
+      "video": "mlp",
+      "resourceKeys": ["course", "micrograd"],
+      "lab": "gradient"
+    },
+    {
+      "id": "02-05",
+      "stage": 2,
+      "title": "Generalization, overfitting & honest evaluation",
+      "minutes": 60,
+      "difficulty": "Foundation",
+      "prerequisites": ["02-04"],
+      "concepts": ["generalization", "overfitting ", "honest evaluation"],
+      "why": "This discipline determines whether your final rules assistant actually works.",
+      "objectives": [
+        "Explain generalization, overfitting & honest evaluation in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Training loss measures fit to observed examples. Validation loss guides model and hyperparameter choices; test loss is reserved for a final assessment. Overfitting means fitting patterns that fail to generalize. Bias describes systematic limitations; variance describes sensitivity to training data. Regularization, simpler models, better data, and early stopping can help, but evaluation leakage defeats all of them.",
+        "Generalization is an empirical claim about a defined distribution of unseen examples. A split drawn from the same narrow template may not test the changes you care about. For the final rules assistant we will reserve paraphrase families, boundary conditions, and combinations of fields and operators.",
+        "Regularization changes the preference among fitting solutions. L2 penalties favor smaller parameter values; early stopping chooses a checkpoint using validation performance. Neither method justifies repeatedly checking the final test set. Record how many model choices you made and preserve a genuinely unused final assessment."
+      ],
+      "equation": "L_{\\mathrm{val}}=\\frac1{N_{\\mathrm{val}}}\\sum_i\\ell_i",
+      "example": "A degree-9 polynomial can interpolate 10 noisy points with near-zero training error and still predict worse than a line on unseen points. Low training error alone cannot distinguish these models.",
+      "exercise": "Train linear and polynomial regressors on a noisy synthetic split. Select hyperparameters using validation only. Record one final test result after freezing choices.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Your report has three separate splits and explains a case where lower training loss did not improve validation loss.",
+      "validation": "Your report has three separate splits and explains a case where lower training loss did not improve validation loss.",
+      "mistake": "Repeatedly choosing models on the test set turns it into a validation set.",
+      "question": "Which split should select a learning rate?",
+      "options": [
+        "There is not enough information to decide",
+        "Test",
+        "Validation"
+      ],
+      "answer": 2,
+      "feedback": "A degree-9 polynomial can interpolate 10 noisy points with near-zero training error and still predict worse than a line on unseen points. Low training error alone cannot distinguish these models. Repeatedly choosing models on the test set turns it into a validation set.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "This discipline determines whether your final rules assistant actually works.",
+      "video": "mlp",
+      "resourceKeys": ["course", "micrograd"],
+      "lab": "gradient"
+    },
+    {
+      "id": "03-01",
+      "stage": 3,
+      "title": "Neurons, nonlinearities & an XOR MLP",
+      "minutes": 45,
+      "difficulty": "Intermediate",
+      "prerequisites": ["02-05"],
+      "concepts": ["neurons", "nonlinearities ", "an xor mlp"],
+      "why": "GPT feed-forward blocks use nonlinear feature transformations at every position.",
+      "objectives": [
+        "Explain neurons, nonlinearities & an xor mlp in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A neuron forms a weighted sum plus bias and applies a nonlinearity. Multiple linear layers without nonlinearities collapse into a single affine map. A hidden nonlinear layer creates features that can separate XOR. Start with tanh so its derivative is smooth; later compare ReLU and inspect dead units.",
+        "A hidden unit learns a nonlinear feature of the input. The next layer combines those features. For XOR, one useful intuition is to detect different regions of the plane with hidden units, then combine them so opposite corners can share a label. The trained weights need not match a hand-designed construction to solve the task.",
+        "Count the parameters before writing code: each of four hidden neurons has two weights and a bias, and the output has four weights and a bias. That gives 4×3+5=17. Store them in an explicit order and verify that each appears in the forward computation and receives a gradient."
+      ],
+      "equation": "a=\\tanh(w^Tx+b),\\quad \\tanh\\prime(z)=1-\\tanh^2(z)",
+      "example": "For x=[1,0], w=[2,-1], b=-1, z=1 and tanh(z)≈0.761594. XOR labels are 0,1,1,0 for 00,01,10,11.",
+      "exercise": "Implement a 2→4→1 tanh MLP forward pass. Print preactivations and activations for the four XOR inputs. Count every weight and bias.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "The network has 17 parameters: 2×4+4+4×1+1. Identical inputs produce identical outputs before any update.",
+      "validation": "The network has 17 parameters: 2×4+4+4×1+1. Identical inputs produce identical outputs before any update.",
+      "mistake": "Depth alone adds no nonlinear capacity when every activation is linear.",
+      "question": "Why insert a nonlinearity?",
+      "options": [
+        "To represent functions beyond affine maps",
+        "To make matrix multiplication valid",
+        "There is not enough information to decide"
+      ],
+      "answer": 0,
+      "feedback": "For x=[1,0], w=[2,-1], b=-1, z=1 and tanh(z)≈0.761594. XOR labels are 0,1,1,0 for 00,01,10,11. Depth alone adds no nonlinear capacity when every activation is linear.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "GPT feed-forward blocks use nonlinear feature transformations at every position.",
+      "video": "neurons",
+      "resourceKeys": ["course", "micrograd"],
+      "lab": "autodiff"
+    },
+    {
+      "id": "03-02",
+      "stage": 3,
+      "title": "Computation graphs & local derivatives",
+      "minutes": 55,
+      "difficulty": "Intermediate",
+      "prerequisites": ["03-01"],
+      "concepts": ["computation graphs ", "local derivatives"],
+      "why": "The same graph rules differentiate attention and projection weights.",
+      "objectives": [
+        "Explain computation graphs & local derivatives in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A computation graph records values and their dependencies. Each operation knows how its output changes with each parent. Reverse-mode differentiation starts from a scalar loss with gradient one and propagates sensitivities backward. Reused values can influence the loss along several paths, and their contributions must be summed.",
+        "Backpropagation applies local derivatives, not symbolic simplification of the whole expression. Addition sends the upstream gradient unchanged to each input. Multiplication sends upstream times the other input’s forward value. Squaring can be represented as multiplication with the same parent on both edges.",
+        "The graph is a directed acyclic graph rather than necessarily a tree. An input may feed many operations. Write += in every parent-gradient update and test a shared node immediately; assignment often passes a simple chain while silently failing a branching graph."
+      ],
+      "equation": "L=(ab+c)^2,\\quad \\partial L/\\partial a=2(ab+c)b",
+      "example": "At a=2,b=-3,c=10: u=ab+c=4, L=16. Gradients are dL/da=-24, dL/db=16, dL/dc=8. Draw multiplication, addition, and square as separate nodes.",
+      "exercise": "Calculate every local derivative on paper. Then write a Node with value, grad, operation, and parent indices. Represent storage with an owning arena.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Your manual leaf gradients match (-24,16,8); for a*a at a=3, the two edges accumulate to 6.",
+      "validation": "Your manual leaf gradients match (-24,16,8); for a*a at a=3, the two edges accumulate to 6.",
+      "mistake": "A shared node needs gradient accumulation with +=, not assignment.",
+      "question": "What is d(a*a)/da at a=3?",
+      "options": ["3", "6", "There is not enough information to decide"],
+      "answer": 1,
+      "feedback": "At a=2,b=-3,c=10: u=ab+c=4, L=16. Gradients are dL/da=-24, dL/db=16, dL/dc=8. Draw multiplication, addition, and square as separate nodes. A shared node needs gradient accumulation with +=, not assignment.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "The same graph rules differentiate attention and projection weights.",
+      "video": "micrograd",
+      "resourceKeys": ["course", "micrograd"],
+      "lab": "autodiff"
+    },
+    {
+      "id": "03-03",
+      "stage": 3,
+      "title": "Reverse-mode autodiff & topological order",
+      "minutes": 60,
+      "difficulty": "Intermediate",
+      "prerequisites": ["03-02"],
+      "concepts": ["reverse-mode autodiff ", "topological order"],
+      "why": "A reliable autodiff engine lets you assemble trainable models from tested operations.",
+      "objectives": [
+        "Explain reverse-mode autodiff & topological order in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A reverse pass must process consumers before their inputs so all downstream contributions arrive first. A depth-first traversal visits each node once and produces a topological ordering; reverse that order for backpropagation. Deduplicate nodes during traversal but preserve duplicate operand edges. Reset graph gradients between independent backward calls and seed the root with one.",
+        "If nodes are appended only after all their parents, their storage order already gives a topological order. The supplied reference uses that invariant. A general graph builder needs a visited set and a traversal that adds a node after visiting its parents; reverse that list for the backward pass.",
+        "Store parent indices or stable ownership rather than pointers into a std::vector that may reallocate. Rebuild forward intermediates after changing parameter values. A saved local derivative based on old activations is stale and cannot be reused for the next training step."
+      ],
+      "equation": "\\bar x=\\sum_{y\\in\\mathrm{users}(x)}\\bar y\\frac{\\partial y}{\\partial x}",
+      "example": "For u=x*x and L=u+u at x=3, forward u=9,L=18. Backward u receives 1+1=2; x receives 2×3 twice, totaling 12.",
+      "exercise": "Complete starter_autodiff.cpp using an arena of indexed nodes. Add multiplication and addition backward rules, topological sorting, and a backward method that resets gradients.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "The shared-node test yields 12. Running backward twice gives 12 again when the documented API resets gradients.",
+      "validation": "The shared-node test yields 12. Running backward twice gives 12 again when the documented API resets gradients.",
+      "mistake": "Deduplicating traversal nodes must not discard the two edges of x*x.",
+      "question": "What derivative reaches x in this graph?",
+      "options": ["There is not enough information to decide", "6", "12"],
+      "answer": 2,
+      "feedback": "For u=x*x and L=u+u at x=3, forward u=9,L=18. Backward u receives 1+1=2; x receives 2×3 twice, totaling 12. Deduplicating traversal nodes must not discard the two edges of x*x.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "A reliable autodiff engine lets you assemble trainable models from tested operations.",
+      "video": "micrograd",
+      "resourceKeys": ["course", "micrograd"],
+      "lab": "autodiff"
+    },
+    {
+      "id": "03-04",
+      "stage": 3,
+      "title": "Gradient checking & matrix backpropagation",
+      "minutes": 75,
+      "difficulty": "Intermediate",
+      "prerequisites": ["03-03"],
+      "concepts": ["gradient checking ", "matrix backpropagation"],
+      "why": "Attention training depends on the correctness of many chained matrix derivatives.",
+      "objectives": [
+        "Explain gradient checking & matrix backpropagation in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Gradient checks compare analytic derivatives with finite differences of the same scalar objective. Perturb one parameter at a time and restore it after each probe. For a matrix product, use transposes to match dimensions. Near zero gradients, absolute error is more informative than relative error; avoid nondifferentiable points such as ReLU at zero.",
+        "Define the scalar objective identically in the analytic and finite-difference paths. If one path sums a batch while the other averages it, every gradient will disagree by the batch size. Restore the perturbed value even when a probe fails; otherwise later checks inspect a changed model.",
+        "Use absolute and relative error together. A practical relative denominator is max(1e-8,|analytic|+|numeric|). Around a truly zero gradient the absolute error is the meaningful quantity. Check a representative parameter in every operation, then all parameters in a very small full network."
+      ],
+      "equation": "Y=XW,\\quad \\bar X=\\bar YW^T,\\quad \\bar W=X^T\\bar Y",
+      "example": "Let X=[1,2], W=[3,4]ᵀ, L=Y². Y=11, dL/dY=22, dL/dX=[66,88], dL/dW=[22,44]ᵀ.",
+      "exercise": "Implement the matrix backward formulas and compare every entry against centered differences with h=1e-5 in double precision. Test a rectangular matrix, not just a scalar.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Maximum absolute error is below 1e-5 on the small fixture; shared parameters accumulate across batch rows.",
+      "validation": "Maximum absolute error is below 1e-5 on the small fixture; shared parameters accumulate across batch rows.",
+      "mistake": "Matching tensor shapes does not prove the derivative is correct.",
+      "question": "For Y=XW, what is dL/dW?",
+      "options": [
+        "Xᵀ(dL/dY)",
+        "(dL/dY)Xᵀ",
+        "There is not enough information to decide"
+      ],
+      "answer": 0,
+      "feedback": "Let X=[1,2], W=[3,4]ᵀ, L=Y². Y=11, dL/dY=22, dL/dX=[66,88], dL/dW=[22,44]ᵀ. Matching tensor shapes does not prove the derivative is correct.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Attention training depends on the correctness of many chained matrix derivatives.",
+      "video": "ninja",
+      "resourceKeys": ["course", "micrograd"],
+      "lab": "autodiff"
+    },
+    {
+      "id": "03-05",
+      "stage": 3,
+      "title": "Train an MLP: initialization, SGD & Adam",
+      "minutes": 60,
+      "difficulty": "Intermediate",
+      "prerequisites": ["03-04"],
+      "concepts": ["train an mlp", "initialization", "sgd ", "adam"],
+      "why": "Your GPT training loop will retain these exact responsibilities at tensor scale.",
+      "objectives": [
+        "Explain train an mlp: initialization, sgd & adam in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Random initialization breaks symmetry between hidden neurons. Scale weights according to fan-in so activations do not immediately saturate. A training iteration clears gradients, predicts, computes loss, runs backward, and updates parameters. SGD uses the current gradient; Adam tracks first and second moments with bias correction. First make SGD work, then compare Adam under a controlled seed.",
+        "Initialization should make hidden units distinct without making all tanh outputs nearly ±1. Saturation drives the local derivative 1-tanh²(z) toward zero and slows learning. Inspect activation ranges and gradient norms, not just the final scalar loss.",
+        "The reference XOR program uses tanh outputs with targets -1,+1,+1,-1 and tests their signs. The browser playground instead uses a sigmoid output with targets 0 or 1. Both are valid teaching choices, but the target convention and loss must match the implementation you are testing."
+      ],
+      "equation": "\\theta\\leftarrow\\theta-\\eta\\nabla_\\theta L",
+      "example": "If θ=0.5, gradient=0.2, η=0.1, the next θ=0.48. Updating twice without clearing accumulated gradients changes the effective algorithm.",
+      "exercise": "Train your 2→4→1 MLP on XOR with a fixed seed. Log loss and each predicted probability. Compare two initialization scales and inspect gradient norms.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "All four outputs cross the correct 0.5 threshold, and a restored checkpoint reproduces the predictions. Record seed and actual iterations.",
+      "validation": "All four outputs cross the correct 0.5 threshold, and a restored checkpoint reproduces the predictions. Record seed and actual iterations.",
+      "mistake": "Backpropagation computes gradients; the optimizer applies updates.",
+      "question": "When should gradients be cleared?",
+      "options": [
+        "Only at the end of the entire training run",
+        "Before accumulating the next independent batch",
+        "There is not enough information to decide"
+      ],
+      "answer": 1,
+      "feedback": "If θ=0.5, gradient=0.2, η=0.1, the next θ=0.48. Updating twice without clearing accumulated gradients changes the effective algorithm. Backpropagation computes gradients; the optimizer applies updates.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Your GPT training loop will retain these exact responsibilities at tensor scale.",
+      "video": "activations",
+      "resourceKeys": ["course", "micrograd"],
+      "lab": "autodiff"
+    },
+    {
+      "id": "04-01",
+      "stage": 4,
+      "title": "Tensor storage, strides & ownership",
+      "minutes": 45,
+      "difficulty": "Intermediate",
+      "prerequisites": ["03-05"],
+      "concepts": ["tensor storage", "strides ", "ownership"],
+      "why": "Every attention tensor depends on consistent logical axes and physical storage.",
+      "objectives": [
+        "Explain tensor storage, strides & ownership in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A tensor pairs storage with shape and strides. Shape counts elements along axes; a stride tells how far to move in storage for one step on that axis. A view can share storage without copying. Keep ownership explicit so temporary expressions cannot leave dangling pointers. Begin with contiguous, owning row-major tensors and add views only after tests pass.",
+        "Storage and shape are separate concepts. A transpose can change strides while referring to the same values. A contiguous owning tensor has a simple layout, but a view introduces lifetime and aliasing questions. Begin with clear ownership and copying; optimize views only when their semantics are tested.",
+        "For a shape product, check integer overflow before allocating. Also check each axis index independently: an invalid column index can otherwise produce an offset that accidentally points into the next row. Use address and undefined-behavior sanitizers on small fixtures to catch storage bugs early."
+      ],
+      "equation": "\\mathrm{offset}(i)=\\sum_k i_k s_k",
+      "example": "A contiguous shape [2,3,4] has strides [12,4,1]. Index [1,2,3] maps to offset 12+8+3=23, the last of 24 elements.",
+      "exercise": "Implement Tensor with std::vector<double>, shape, strides, and bounds-checked at(). Add checked size multiplication to reject overflow.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "[1,2,3] maps to 23; out-of-bounds indices and storage/shape mismatches fail before memory access.",
+      "validation": "[1,2,3] maps to 23; out-of-bounds indices and storage/shape mismatches fail before memory access.",
+      "mistake": "Reshaping a non-contiguous view is not always metadata-only.",
+      "question": "What are the row-major strides for [2,3,4]?",
+      "options": [
+        "There is not enough information to decide",
+        "[1,2,6]",
+        "[12,4,1]"
+      ],
+      "answer": 2,
+      "feedback": "A contiguous shape [2,3,4] has strides [12,4,1]. Index [1,2,3] maps to offset 12+8+3=23, the last of 24 elements. Reshaping a non-contiguous view is not always metadata-only.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Every attention tensor depends on consistent logical axes and physical storage.",
+      "video": "mlp",
+      "resourceKeys": ["course", "micrograd"],
+      "lab": "tensor"
+    },
+    {
+      "id": "04-02",
+      "stage": 4,
+      "title": "Broadcasting, reductions & their gradients",
+      "minutes": 55,
+      "difficulty": "Intermediate",
+      "prerequisites": ["04-01"],
+      "concepts": ["broadcasting", "reductions ", "their gradients"],
+      "why": "Biases and normalization repeatedly rely on broadcast and reduction rules.",
+      "objectives": [
+        "Explain broadcasting, reductions & their gradients in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Broadcasting aligns dimensions from the right; two axes are compatible when equal or one is size one. Conceptual repetition need not allocate copies. A reduction sums or averages along an axis. In backward, gradients of broadcast operands reduce across the expanded axes, and gradients of sums expand back to the original shape.",
+        "Broadcasting is a conceptual reuse of one value in many output positions. Reverse-mode differentiation must therefore add the derivative from every use. Summing the expanded axes is the exact backward operation, not an arbitrary implementation trick.",
+        "Distinguish sum from mean. A sum reduction sends the upstream gradient unchanged to every contributing input. A mean additionally divides by the number of reduced elements. This distinction is easy to miss when a test has an axis of length one; always include longer axes."
+      ],
+      "equation": "Y_{ij}=X_{ij}+b_j,\\quad \\bar b_j=\\sum_i\\bar Y_{ij}",
+      "example": "Add b=[10,20,30] to [[1,2,3],[4,5,6]] to get [[11,22,33],[14,25,36]]. If every upstream gradient is one, db=[2,2,2].",
+      "exercise": "Implement bias addition, sum, and mean over batch rows with backward functions. Explicitly reject incompatible axes.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Forward values match the fixture; mean backward divides by the reduced count; bias backward returns [2,2,2].",
+      "validation": "Forward values match the fixture; mean backward divides by the reduced count; bias backward returns [2,2,2].",
+      "mistake": "A broadcast bias gradient is a sum over uses, not just the last row.",
+      "question": "What is db when two rows each contribute ones?",
+      "options": [
+        "[2,2,2]",
+        "[1,1,1]",
+        "There is not enough information to decide"
+      ],
+      "answer": 0,
+      "feedback": "Add b=[10,20,30] to [[1,2,3],[4,5,6]] to get [[11,22,33],[14,25,36]]. If every upstream gradient is one, db=[2,2,2]. A broadcast bias gradient is a sum over uses, not just the last row.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Biases and normalization repeatedly rely on broadcast and reduction rules.",
+      "video": "ninja",
+      "resourceKeys": ["course", "micrograd"],
+      "lab": "tensor"
+    },
+    {
+      "id": "04-03",
+      "stage": 4,
+      "title": "Matmul correctness, cache locality & SIMD",
+      "minutes": 60,
+      "difficulty": "Intermediate",
+      "prerequisites": ["04-02"],
+      "concepts": ["matmul correctness", "cache locality ", "simd"],
+      "why": "Projection and attention performance will be dominated by well-chosen matrix operations.",
+      "objectives": [
+        "Explain matmul correctness, cache locality & simd in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "The educational triple loop is your correctness oracle. Row-major layout makes the last axis contiguous. Loop ordering and blocking can reuse cached values and avoid strided reads, while compiler vectorization can process adjacent elements together. Compare identical dimensions and data, warm up first, and preserve a simple reference. SIMD improves a constant factor; the dense multiplication still has cubic work for square matrices.",
+        "In an i-j-k loop, successive accesses to B[k,j] jump across rows when B is row-major. An i-k-j loop reuses A[i,k] and traverses B[k,j] and C[i,j] contiguously over j. The arithmetic is the same, but cache and vectorization behavior can change.",
+        "Benchmark multiple shapes because small, tall, wide, and square matrices stress the machine differently. Prevent dead-code elimination with an output checksum, keep allocation outside the timed region when measuring just multiplication, and report whether end-to-end timing includes allocation. Correctness tolerances must account for changes in summation order."
+      ],
+      "equation": "\\mathrm{work}(A_{M\\times K}B_{K\\times N})\\approx2MKN",
+      "example": "For 64×128 times 128×32, output is 64×32 and the approximate arithmetic work is 524,288 operations. Counting only output elements understates the work by a factor related to K.",
+      "exercise": "Implement an i-k-j variant after the i-j-k reference. Test nonsquare, identity, zero, and incompatible matrices. Benchmark with a release build and consume the output checksum.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Optimized and reference outputs agree within declared tolerances. Report median timing, shape, compiler flags, and whether the compiler vectorized the loop.",
+      "validation": "Optimized and reference outputs agree within declared tolerances. Report median timing, shape, compiler flags, and whether the compiler vectorized the loop.",
+      "mistake": "-O3 is not evidence of a speedup; measurement is required.",
+      "question": "What dimension is reduced in A(M,K)B(K,N)?",
+      "options": ["M", "K", "There is not enough information to decide"],
+      "answer": 1,
+      "feedback": "For 64×128 times 128×32, output is 64×32 and the approximate arithmetic work is 524,288 operations. Counting only output elements understates the work by a factor related to K. -O3 is not evidence of a speedup; measurement is required.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Projection and attention performance will be dominated by well-chosen matrix operations.",
+      "video": "matrices",
+      "resourceKeys": ["course", "micrograd"],
+      "lab": "tensor"
+    },
+    {
+      "id": "04-04",
+      "stage": 4,
+      "title": "Stable softmax & log-sum-exp",
+      "minutes": 75,
+      "difficulty": "Intermediate",
+      "prerequisites": ["04-03"],
+      "concepts": ["stable softmax ", "log-sum-exp"],
+      "why": "Stable vocabulary loss is essential for training a language model at any scale.",
+      "objectives": [
+        "Explain stable softmax & log-sum-exp in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Logits are unrestricted scores. Softmax normalizes their exponentials to probabilities. Directly exponentiating large logits overflows. Subtract the maximum first: this leaves probabilities unchanged while bounding every exponential by one. Compute cross-entropy from log-sum-exp directly so a tiny target probability does not round to zero before taking its logarithm.",
+        "Softmax is invariant to a shared additive constant: exp(z_i+c)/Σexp(z_j+c) cancels exp(c). Choose c=-max(z), so all exponents are at most zero. At least one exponential equals one, ensuring the denominator is positive for a nonempty finite input.",
+        "For cross-entropy, compute logsumexp(z)-z_target directly. The derivative is p-one_hot(target), whose coordinates sum to zero. Test both shift invariance and this gradient-sum property, but also compare each gradient with finite differences to avoid relying only on aggregate identities."
+      ],
+      "equation": "\\ell(z,y)=m+\\log\\sum_j e^{z_j-m}-z_y",
+      "example": "For logits [1000,1001], shift to [-1,0]. Probabilities are approximately [0.268941,0.731059]; target 1 loss is 0.313262, entirely finite.",
+      "exercise": "Implement stable_softmax and cross_entropy_logits. Compare logits z and z+1000. Add their backward derivative p-one_hot(y).",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "The shifted and original distributions agree; probabilities sum to one; gradients sum to approximately zero.",
+      "validation": "The shifted and original distributions agree; probabilities sum to one; gradients sum to approximately zero.",
+      "mistake": "Clamping probabilities can hide an unstable implementation and distort gradients.",
+      "question": "Does adding the same constant to all logits change softmax?",
+      "options": ["There is not enough information to decide", "Yes", "No"],
+      "answer": 2,
+      "feedback": "For logits [1000,1001], shift to [-1,0]. Probabilities are approximately [0.268941,0.731059]; target 1 loss is 0.313262, entirely finite. Clamping probabilities can hide an unstable implementation and distort gradients.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Stable vocabulary loss is essential for training a language model at any scale.",
+      "video": "makemore",
+      "resourceKeys": ["course", "micrograd"],
+      "lab": "tensor"
+    },
+    {
+      "id": "04-05",
+      "stage": 4,
+      "title": "Checkpointing, debugging & CPU profiling",
+      "minutes": 60,
+      "difficulty": "Intermediate",
+      "prerequisites": ["04-04"],
+      "concepts": ["checkpointing", "debugging ", "cpu profiling"],
+      "why": "Reproducible checkpointing makes larger local training runs recoverable.",
+      "objectives": [
+        "Explain checkpointing, debugging & cpu profiling in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A checkpoint must define shape, numeric type, byte order or text representation, version, and parameter names. Validate sizes before allocating and reject truncation. To resume training faithfully, store optimizer state, step counter, and random generator state too. Debug NaNs at their first appearance and profile a release build only after correctness tests pass.",
+        "A checkpoint format is an interface between experiments. Include a magic string and version, reject unknown shapes, and verify the file is complete before accepting it. Write to a temporary path and rename after a successful close to reduce the chance of leaving a half-written checkpoint.",
+        "A reproducible resume test trains N steps, saves, restores into a new process, then trains M more steps. Compare against one uninterrupted N+M run under the same deterministic settings. Document whether the runtime promises deterministic GPU execution; if it does not, use a declared tolerance and compare the trajectory statistically rather than claiming bitwise identity."
+      ],
+      "equation": "\\mathrm{resume}=\\{\\theta,m,v,t,\\mathrm{RNG}\\}",
+      "example": "Saving weights alone reproduces inference. Resuming Adam with zero moments produces a different trajectory even when the weights match exactly.",
+      "exercise": "Write a versioned checkpoint reader and writer. Round-trip a small model; reject an unsupported version and truncated data. Profile the slowest CPU operation with Instruments or a steady-clock benchmark.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Predictions are identical after a round trip. A resumed deterministic run matches uninterrupted training within your declared tolerance.",
+      "validation": "Predictions are identical after a round trip. A resumed deterministic run matches uninterrupted training within your declared tolerance.",
+      "mistake": "A checkpoint that loads without error may still map weights to the wrong layers.",
+      "question": "Which state is required to resume Adam faithfully?",
+      "options": [
+        "Weights, moments, step, and RNG state",
+        "Weights only",
+        "There is not enough information to decide"
+      ],
+      "answer": 0,
+      "feedback": "Saving weights alone reproduces inference. Resuming Adam with zero moments produces a different trajectory even when the weights match exactly. A checkpoint that loads without error may still map weights to the wrong layers.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Reproducible checkpointing makes larger local training runs recoverable.",
+      "video": "micrograd",
+      "resourceKeys": ["course", "micrograd"],
+      "lab": "tensor"
+    },
+    {
+      "id": "05-01",
+      "stage": 5,
+      "title": "Unicode, bytes & a character vocabulary",
+      "minutes": 75,
+      "difficulty": "Intermediate",
+      "prerequisites": ["04-05"],
+      "concepts": ["unicode", "bytes ", "a character vocabulary"],
+      "why": "Vocabulary choice determines the final embedding and output matrix shapes.",
+      "objectives": [
+        "Explain unicode, bytes & a character vocabulary in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "UTF-8 bytes, Unicode code points, and user-perceived graphemes are distinct. A character model can use decoded code points, while a byte model always has a fixed base vocabulary of 256. Build reversible IDs and document unknown-character policy."
+      ],
+      "equation": "\\mathrm{decode}(\\mathrm{encode}(s))=s",
+      "example": "é is two UTF-8 bytes but one code point. A combining accent can make one visible grapheme from two code points.",
+      "exercise": "Build a sorted character vocabulary and reversible encode/decode functions. Test ASCII, accented text, and empty input.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Round trips preserve the exact input; train/validation handling of unseen characters is documented.",
+      "validation": "Round trips preserve the exact input; train/validation handling of unseen characters is documented.",
+      "mistake": "std::string indexing accesses bytes, not necessarily full characters.",
+      "question": "What does std::string index in UTF-8?",
+      "options": [
+        "Grapheme clusters",
+        "Bytes",
+        "There is not enough information to decide"
+      ],
+      "answer": 1,
+      "feedback": "é is two UTF-8 bytes but one code point. A combining accent can make one visible grapheme from two code points. std::string indexing accesses bytes, not necessarily full characters.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Vocabulary choice determines the final embedding and output matrix shapes.",
+      "video": "tokenizer",
+      "resourceKeys": ["bpe", "course"],
+      "lab": "bigram"
+    },
+    {
+      "id": "05-02",
+      "stage": 5,
+      "title": "Bigram counts & maximum likelihood",
+      "minutes": 90,
+      "difficulty": "Intermediate",
+      "prerequisites": ["05-01"],
+      "concepts": ["bigram counts ", "maximum likelihood"],
+      "why": "This is the baseline your first neural language model must beat.",
+      "objectives": [
+        "Explain bigram counts & maximum likelihood in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A bigram model estimates the next-token distribution using only the previous token. Count transitions and normalize each row. Add smoothing so unseen transitions have nonzero probability and use an explicit end token."
+      ],
+      "equation": "p(j\\mid i)=\\frac{N_{ij}+\\alpha}{\\sum_k N_{ik}+\\alpha V}",
+      "example": "Counts [2,0] with α=1 give [3/4,1/4], avoiding log(0) on the unseen second outcome.",
+      "exercise": "Implement counts and smoothed probabilities on your own tiny corpus; run bigram.cpp as a reference.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Every row sums to one and held-out negative log likelihood is finite.",
+      "validation": "Every row sums to one and held-out negative log likelihood is finite.",
+      "mistake": "A bigram model has a one-token conditioning context, not two previous tokens.",
+      "question": "What prevents a zero probability for an unseen pair?",
+      "options": [
+        "There is not enough information to decide",
+        "Argmax decoding",
+        "Positive smoothing"
+      ],
+      "answer": 2,
+      "feedback": "Counts [2,0] with α=1 give [3/4,1/4], avoiding log(0) on the unseen second outcome. A bigram model has a one-token conditioning context, not two previous tokens.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "This is the baseline your first neural language model must beat.",
+      "video": "makemore",
+      "resourceKeys": ["bpe", "course"],
+      "lab": "bigram"
+    },
+    {
+      "id": "05-03",
+      "stage": 5,
+      "title": "Embeddings & context windows",
+      "minutes": 90,
+      "difficulty": "Intermediate",
+      "prerequisites": ["05-02"],
+      "concepts": ["embeddings ", "context windows"],
+      "why": "The same embedding table starts every Transformer forward pass.",
+      "objectives": [
+        "Explain embeddings & context windows in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "An embedding is a trainable lookup table whose selected rows become input vectors. A context window specifies the available previous tokens. Concatenating several embeddings into an MLP creates a fixed-context language model before attention."
+      ],
+      "equation": "E\\in\\mathbb{R}^{V\\times C},\\quad x_t=E[\\mathrm{id}_t]",
+      "example": "A 30-token vocabulary with width 8 has 240 embedding weights. Repeating token 4 twice accumulates both backward contributions into row 4.",
+      "exercise": "Implement embedding lookup and scatter-add backward. Build context windows without crossing document boundaries.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Repeated IDs add their gradients; unused rows receive zero gradient.",
+      "validation": "Repeated IDs add their gradients; unused rows receive zero gradient.",
+      "mistake": "Embedding lookup does not create a new parameter for each token occurrence.",
+      "question": "Where do gradients for a repeated token accumulate?",
+      "options": [
+        "The same embedding row",
+        "New rows for each occurrence",
+        "There is not enough information to decide"
+      ],
+      "answer": 0,
+      "feedback": "A 30-token vocabulary with width 8 has 240 embedding weights. Repeating token 4 twice accumulates both backward contributions into row 4. Embedding lookup does not create a new parameter for each token occurrence.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "The same embedding table starts every Transformer forward pass.",
+      "video": "mlp",
+      "resourceKeys": ["bpe", "course"],
+      "lab": "bigram"
+    },
+    {
+      "id": "05-04",
+      "stage": 5,
+      "title": "BPE: learn merges, preserve reversibility",
+      "minutes": 75,
+      "difficulty": "Intermediate",
+      "prerequisites": ["05-03"],
+      "concepts": ["bpe", "learn merges", "preserve reversibility"],
+      "why": "Tokenization controls compute cost and the units of your evaluation metrics.",
+      "objectives": [
+        "Explain bpe: learn merges, preserve reversibility in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Byte pair encoding repeatedly merges frequent adjacent token pairs. The merge ranking is learned on training text and frozen for encoding. Keep this separate from neural network training; it changes sequence lengths and vocabulary size."
+      ],
+      "equation": "V_{\\mathrm{final}}=256+N_{\\mathrm{merges}}",
+      "example": "In “abab”, merging the byte pair (a,b) produces [ab,ab]. Overlapping pairs require a deterministic non-overlapping merge rule.",
+      "exercise": "Implement five byte-pair merges on a tiny corpus and compare with minbpe. Log every merge and its frequency.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Encoding is deterministic; decoding exactly reconstructs UTF-8 bytes; merges never use validation text.",
+      "validation": "Encoding is deterministic; decoding exactly reconstructs UTF-8 bytes; merges never use validation text.",
+      "mistake": "The browser character splitter is not BPE.",
+      "question": "Is BPE merge learning the same as gradient descent?",
+      "options": [
+        "Yes, it updates embeddings",
+        "No, it counts and merges pairs",
+        "There is not enough information to decide"
+      ],
+      "answer": 1,
+      "feedback": "In “abab”, merging the byte pair (a,b) produces [ab,ab]. Overlapping pairs require a deterministic non-overlapping merge rule. The browser character splitter is not BPE.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Tokenization controls compute cost and the units of your evaluation metrics.",
+      "video": "tokenizer",
+      "resourceKeys": ["bpe", "course"],
+      "lab": "bigram"
+    },
+    {
+      "id": "05-05",
+      "stage": 5,
+      "title": "Generation, temperature & perplexity",
+      "minutes": 120,
+      "difficulty": "Intermediate",
+      "prerequisites": ["05-04"],
+      "concepts": ["generation", "temperature ", "perplexity"],
+      "why": "Sampling and held-out loss remain core interfaces of the GPT capstone.",
+      "objectives": [
+        "Explain generation, temperature & perplexity in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Autoregressive generation samples a token, appends it, and repeats. Greedy decoding takes the highest score. Temperature divides logits before softmax; lower positive values sharpen the distribution. Perplexity is exp(mean loss in nats) and is comparable only under the same tokenizer and evaluation protocol."
+      ],
+      "equation": "p_i=\\mathrm{softmax}(z_i/\\tau),\\quad \\mathrm{PPL}=e^L",
+      "example": "A uniform distribution over 4 tokens has cross-entropy ln4 and perplexity 4. Temperature approaching zero behaves increasingly like argmax; use a separate greedy branch for τ=0.",
+      "exercise": "Add seeded categorical sampling and an end token to your bigram model. Compare temperature 0.5,1,2 and evaluate a frozen held-out set.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "The same seed reproduces text; samples stay in vocabulary; the report states tokenizer and mean loss.",
+      "validation": "The same seed reproduces text; samples stay in vocabulary; the report states tokenizer and mean loss.",
+      "mistake": "Interesting samples do not prove improved held-out modeling.",
+      "question": "What is perplexity when mean loss is ln4?",
+      "options": ["There is not enough information to decide", "ln4", "4"],
+      "answer": 2,
+      "feedback": "A uniform distribution over 4 tokens has cross-entropy ln4 and perplexity 4. Temperature approaching zero behaves increasingly like argmax; use a separate greedy branch for τ=0. Interesting samples do not prove improved held-out modeling.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Sampling and held-out loss remain core interfaces of the GPT capstone.",
+      "video": "makemore",
+      "resourceKeys": ["bpe", "course"],
+      "lab": "bigram"
+    },
+    {
+      "id": "06-01",
+      "stage": 6,
+      "title": "Attention as content-dependent aggregation",
+      "minutes": 75,
+      "difficulty": "Intermediate",
+      "prerequisites": ["05-05"],
+      "concepts": ["attention as content-dependent aggregation"],
+      "why": "Attention provides the context mixing operation missing from a fixed-context MLP.",
+      "objectives": [
+        "Explain attention as content-dependent aggregation in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Attention lets each token choose a weighted combination of other token representations. Queries ask what is relevant, keys advertise matching information, and values carry the content to combine. Unlike a recurrent state, attention can connect distant positions directly."
+      ],
+      "equation": "A=\\mathrm{softmax}(QK^T/\\sqrt{d_k})",
+      "example": "With one query [1,0] and keys [1,0],[0,1], raw scores are [1,0]. Softmax gives unequal positive weights summing to one.",
+      "exercise": "Implement a single-head forward pass for a 3×4 fixture. Compare scores, normalized rows, and weighted values with hand calculations.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Each attention row sums to one; permuting keys and values together preserves the weighted result for a fixed query.",
+      "validation": "Each attention row sums to one; permuting keys and values together preserves the weighted result for a fixed query.",
+      "mistake": "Attention weights are context-dependent computations, not fixed model parameters.",
+      "question": "Which vectors are mixed using attention weights?",
+      "options": [
+        "Values",
+        "Vocabulary IDs",
+        "There is not enough information to decide"
+      ],
+      "answer": 0,
+      "feedback": "With one query [1,0] and keys [1,0],[0,1], raw scores are [1,0]. Softmax gives unequal positive weights summing to one. Attention weights are context-dependent computations, not fixed model parameters.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Attention provides the context mixing operation missing from a fixed-context MLP.",
+      "video": "gpt",
+      "resourceKeys": ["attention", "llmc"],
+      "lab": "attention"
+    },
+    {
+      "id": "06-02",
+      "stage": 6,
+      "title": "Causal masking & multi-head projections",
+      "minutes": 90,
+      "difficulty": "Intermediate",
+      "prerequisites": ["06-01"],
+      "concepts": ["causal masking ", "multi-head projections"],
+      "why": "Causality makes parallel teacher-forced training match autoregressive inference.",
+      "objectives": [
+        "Explain causal masking & multi-head projections in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Training must not reveal future target tokens. Set future attention logits to negative infinity before normalization. Multi-head attention projects into several smaller feature spaces, mixes positions independently, concatenates, and projects back to model width."
+      ],
+      "equation": "A_{ij}=0\\quad\\mathrm{for}\\ j>i",
+      "example": "At sequence position 1 using zero-based indexing, positions 0 and 1 are visible; positions 2 and later are masked.",
+      "exercise": "Implement causal attention and split 8 channels across two heads. Perturb a future token and compare earlier outputs.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Earlier outputs remain unchanged; masked weights are exactly zero; head concatenation restores width 8.",
+      "validation": "Earlier outputs remain unchanged; masked weights are exactly zero; head concatenation restores width 8.",
+      "mistake": "Masking after softmax without renormalizing yields rows that do not sum to one.",
+      "question": "May position 1 attend to position 2 in causal training?",
+      "options": ["Yes", "No", "There is not enough information to decide"],
+      "answer": 1,
+      "feedback": "At sequence position 1 using zero-based indexing, positions 0 and 1 are visible; positions 2 and later are masked. Masking after softmax without renormalizing yields rows that do not sum to one.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Causality makes parallel teacher-forced training match autoregressive inference.",
+      "video": "gpt",
+      "resourceKeys": ["attention", "llmc"],
+      "lab": "attention"
+    },
+    {
+      "id": "06-03",
+      "stage": 6,
+      "title": "Position: learned tables & RoPE",
+      "minutes": 90,
+      "difficulty": "Intermediate",
+      "prerequisites": ["06-02"],
+      "concepts": ["position", "learned tables ", "rope"],
+      "why": "Positional representations let the model distinguish different word orders.",
+      "objectives": [
+        "Explain position: learned tables & rope in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Content attention alone does not encode sequence order. Begin with learned position vectors added to token embeddings. RoPE rotates paired query and key coordinates with position-dependent angles, inducing relative-position structure in dot products."
+      ],
+      "equation": "R(\\theta)=\\begin{bmatrix}\\cos\\theta&-\\sin\\theta\\\\\\sin\\theta&\\cos\\theta\\end{bmatrix}",
+      "example": "Rotate [1,0] by π/2 to get [0,1]. The norm remains one. RoPE rotates Q and K, not arbitrary vocabulary probabilities.",
+      "exercise": "Implement learned positions first. Then add a paired-coordinate RoPE helper and test rotations and norm preservation.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Position zero is unchanged; inverse rotation recovers the vector within tolerance.",
+      "validation": "Position zero is unchanged; inverse rotation recovers the vector within tolerance.",
+      "mistake": "RoPE does not automatically guarantee reliable extrapolation beyond training context.",
+      "question": "What does a 2D rotation preserve?",
+      "options": [
+        "There is not enough information to decide",
+        "Each coordinate individually",
+        "Euclidean norm"
+      ],
+      "answer": 2,
+      "feedback": "Rotate [1,0] by π/2 to get [0,1]. The norm remains one. RoPE rotates Q and K, not arbitrary vocabulary probabilities. RoPE does not automatically guarantee reliable extrapolation beyond training context.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Positional representations let the model distinguish different word orders.",
+      "video": "architecture",
+      "resourceKeys": ["attention", "llmc"],
+      "lab": "attention"
+    },
+    {
+      "id": "06-04",
+      "stage": 6,
+      "title": "Residuals, normalization & feed-forward blocks",
+      "minutes": 75,
+      "difficulty": "Intermediate",
+      "prerequisites": ["06-03"],
+      "concepts": ["residuals", "normalization ", "feed-forward blocks"],
+      "why": "These blocks make a deeper decoder trainable and shape-consistent.",
+      "objectives": [
+        "Explain residuals, normalization & feed-forward blocks in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Residual additions give a direct path for information and gradients. LayerNorm normalizes each token across features and learns scale and bias; RMSNorm uses root mean square without centering. A positionwise feed-forward block changes channels independently at each token. GELU and SwiGLU provide different nonlinear transformations."
+      ],
+      "equation": "\\mathrm{RMSNorm}(x)=g\\odot x/\\sqrt{\\mathrm{mean}(x^2)+\\epsilon}",
+      "example": "For x=[3,4], RMS=√12.5. Dividing by it yields approximately [0.8485,1.1314] before learned scaling.",
+      "exercise": "Implement a pre-norm block with attention and MLP residual branches. Gradient-check normalization on a nonconstant vector.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "All block outputs preserve [B,T,C]; epsilon keeps a zero input finite.",
+      "validation": "All block outputs preserve [B,T,C]; epsilon keeps a zero input finite.",
+      "mistake": "LayerNorm and BatchNorm normalize different axes and are not interchangeable.",
+      "question": "Across which axis does token LayerNorm operate?",
+      "options": [
+        "Feature channels",
+        "Future sequence positions",
+        "There is not enough information to decide"
+      ],
+      "answer": 0,
+      "feedback": "For x=[3,4], RMS=√12.5. Dividing by it yields approximately [0.8485,1.1314] before learned scaling. LayerNorm and BatchNorm normalize different axes and are not interchangeable.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "These blocks make a deeper decoder trainable and shape-consistent.",
+      "video": "architecture",
+      "resourceKeys": ["attention", "llmc"],
+      "lab": "attention"
+    },
+    {
+      "id": "06-05",
+      "stage": 6,
+      "title": "Assemble and train a miniature GPT",
+      "minutes": 120,
+      "difficulty": "Intermediate",
+      "prerequisites": ["06-04"],
+      "concepts": ["assemble and train a miniature gpt"],
+      "why": "This is the first complete randomly initialized GPT milestone.",
+      "objectives": [
+        "Explain assemble and train a miniature gpt in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A decoder stacks causal blocks over token and position representations. A final linear projection gives vocabulary logits at each position. Average next-token loss across all valid positions, and backpropagate through the entire network. Start extremely small and overfit one batch to find implementation bugs."
+      ],
+      "equation": "L=-\\frac1{BT}\\sum_{b,t}\\log p(x_{b,t+1}\\mid x_{b,\\leq t})",
+      "example": "For B=2,T=8,V=32, the output contains 512 logits and the loss averages 16 target terms.",
+      "exercise": "Assemble one block with width 16 and two heads. Overfit one fixed batch, gradient-check a parameter from each component, then train on a clean text split.",
+      "guidance": "Use double precision for the CPU reference. Keep the calculation separate from input/output. Write down array dimensions before loops, check invalid inputs, and give tests a nonzero exit code on failure.",
+      "expected": "Tiny-batch loss falls well below its uniform baseline lnV; no future-token leakage test fails.",
+      "validation": "Tiny-batch loss falls well below its uniform baseline lnV; no future-token leakage test fails.",
+      "mistake": "A decreasing training loss does not establish generalization or conversational ability.",
+      "question": "How many target terms are averaged for B=2,T=8?",
+      "options": ["512", "16", "There is not enough information to decide"],
+      "answer": 1,
+      "feedback": "For B=2,T=8,V=32, the output contains 512 logits and the loss averages 16 target terms. A decreasing training loss does not establish generalization or conversational ability.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "This is the first complete randomly initialized GPT milestone.",
+      "video": "gpt",
+      "resourceKeys": ["attention", "llmc"],
+      "lab": "attention"
+    },
+    {
+      "id": "07-01",
+      "stage": 7,
+      "title": "GPU architecture & unified memory",
+      "minutes": 75,
+      "difficulty": "Advanced",
+      "prerequisites": ["06-05"],
+      "concepts": ["gpu architecture ", "unified memory"],
+      "why": "Architecture knowledge guides which model operations are worth accelerating.",
+      "objectives": [
+        "Explain gpu architecture & unified memory in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A GPU trades low-latency sequential work for throughput across many threads. Unified memory makes physical storage shared on Apple Silicon, but CPU and GPU still need coherent access ordering. Small kernels may spend more time submitting work than computing."
+      ],
+      "equation": "t\\gtrsim\\max(\\mathrm{bytes}/BW,\\mathrm{FLOPs}/F)",
+      "example": "An addition reads two float32 arrays and writes one: about 12 bytes per element for only one addition, making it bandwidth-heavy.",
+      "exercise": "Measure your actual hardware and compare array addition sizes from 1K to 1M elements. Include submission and synchronization time.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "Report the crossover size where GPU becomes beneficial, if one occurs.",
+      "validation": "Report the crossover size where GPU becomes beneficial, if one occurs.",
+      "mistake": "Shared physical memory does not make unsynchronized concurrent writes safe.",
+      "question": "What is a likely bottleneck for vector addition?",
+      "options": [
+        "There is not enough information to decide",
+        "Matrix arithmetic intensity",
+        "Memory bandwidth"
+      ],
+      "answer": 2,
+      "feedback": "An addition reads two float32 arrays and writes one: about 12 bytes per element for only one addition, making it bandwidth-heavy. Shared physical memory does not make unsynchronized concurrent writes safe.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Architecture knowledge guides which model operations are worth accelerating.",
+      "video": "appleCompute",
+      "resourceKeys": ["metalcpp", "metal", "mlx"],
+      "lab": "metal"
+    },
+    {
+      "id": "07-02",
+      "stage": 7,
+      "title": "Metal-cpp buffers & compute pipelines",
+      "minutes": 90,
+      "difficulty": "Advanced",
+      "prerequisites": ["07-01"],
+      "concepts": ["metal-cpp buffers ", "compute pipelines"],
+      "why": "This provides the host-device interface for custom GPT kernels.",
+      "objectives": [
+        "Explain metal-cpp buffers & compute pipelines in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Metal-cpp mirrors the Metal API in C++. Create a device, command queue, shader library, pipeline, buffers, and command buffer. Keep resources alive through GPU completion. Define the private implementation macros in exactly one translation unit."
+      ],
+      "equation": "y_i=a_i+b_i",
+      "example": "For 257 elements and a chosen group size, round up dispatch capacity and guard tid<n so padding threads do not access invalid memory.",
+      "exercise": "Follow the official Metal-cpp installation. Write vector_add.metal and a C++ host; compare its output to a CPU array.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "257 and zero-length edge cases are handled safely; every result matches the CPU.",
+      "validation": "257 and zero-length edge cases are handled safely; every result matches the CPU.",
+      "mistake": "A submitted command is not necessarily completed.",
+      "question": "Why guard tid<n?",
+      "options": [
+        "Rounded dispatches can include extra threads",
+        "GPUs cannot index arrays",
+        "There is not enough information to decide"
+      ],
+      "answer": 0,
+      "feedback": "For 257 elements and a chosen group size, round up dispatch capacity and guard tid<n so padding threads do not access invalid memory. A submitted command is not necessarily completed.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "This provides the host-device interface for custom GPT kernels.",
+      "video": "appleCompute",
+      "resourceKeys": ["metalcpp", "metal", "mlx"],
+      "lab": "metal"
+    },
+    {
+      "id": "07-03",
+      "stage": 7,
+      "title": "Threadgroups, reductions & GPU matmul",
+      "minutes": 90,
+      "difficulty": "Advanced",
+      "prerequisites": ["07-02"],
+      "concepts": ["threadgroups", "reductions ", "gpu matmul"],
+      "why": "Matmul and reductions dominate attention and normalization work.",
+      "objectives": [
+        "Explain threadgroups, reductions & gpu matmul in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Threadgroups cooperate using shared memory and barriers. Every participating thread must reach a barrier consistently. Tile matmul to reuse loaded data; handle partial tiles explicitly. Parallel reductions combine partial sums with a known order that may differ from CPU rounding."
+      ],
+      "equation": "C_{ij}=\\sum_k A_{ik}B_{kj}",
+      "example": "A 17×19 by 19×13 multiplication has boundary tiles on every axis for a 16-wide tile. Testing only multiples of 16 hides these bugs.",
+      "exercise": "Build a simple GPU matmul before a tiled version. Add odd-sized matrices and a parallel sum reduction.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "Compare absolute and relative error against double CPU reference; no out-of-range writes occur.",
+      "validation": "Compare absolute and relative error against double CPU reference; no out-of-range writes occur.",
+      "mistake": "GPU floating-point summation need not be bit-identical to sequential CPU summation.",
+      "question": "What test best exposes tile-boundary errors?",
+      "options": [
+        "Only 16×16 matrices",
+        "Odd matrix dimensions",
+        "There is not enough information to decide"
+      ],
+      "answer": 1,
+      "feedback": "A 17×19 by 19×13 multiplication has boundary tiles on every axis for a 16-wide tile. Testing only multiples of 16 hides these bugs. GPU floating-point summation need not be bit-identical to sequential CPU summation.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Matmul and reductions dominate attention and normalization work.",
+      "video": "appleScale",
+      "resourceKeys": ["metalcpp", "metal", "mlx"],
+      "lab": "metal"
+    },
+    {
+      "id": "07-04",
+      "stage": 7,
+      "title": "MLX C++ arrays, laziness & autodiff",
+      "minutes": 75,
+      "difficulty": "Advanced",
+      "prerequisites": ["07-03"],
+      "concepts": ["mlx c++ arrays", "laziness ", "autodiff"],
+      "why": "MLX is a practical path from CPU understanding to laptop-scale experiments.",
+      "objectives": [
+        "Explain mlx c++ arrays, laziness & autodiff in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "MLX supplies arrays and automatic differentiation, allowing practical training without first implementing every GPU kernel. Lazy execution defers work until evaluation, so benchmark synchronized evaluations rather than graph construction. Keep your educational CPU engine as the numerical oracle."
+      ],
+      "equation": "g=\\nabla_\\theta L(\\theta)",
+      "example": "Timing array-expression creation alone can report a tiny duration while actual GPU computation remains deferred.",
+      "exercise": "Build the official current MLX C++ example following its README. Port one checked linear layer and compare forward values and gradients.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "Record the MLX commit/version, dtype, explicit evaluation boundary, and errors versus CPU.",
+      "validation": "Record the MLX commit/version, dtype, explicit evaluation boundary, and errors versus CPU.",
+      "mistake": "MLX-LM tools commonly use Python; that does not replace your C++ educational implementation.",
+      "question": "What must a meaningful lazy-array benchmark include?",
+      "options": [
+        "There is not enough information to decide",
+        "Only expression construction",
+        "Materialized computation and completion"
+      ],
+      "answer": 2,
+      "feedback": "Timing array-expression creation alone can report a tiny duration while actual GPU computation remains deferred. MLX-LM tools commonly use Python; that does not replace your C++ educational implementation.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "MLX is a practical path from CPU understanding to laptop-scale experiments.",
+      "video": "appleTrain",
+      "resourceKeys": ["metalcpp", "metal", "mlx"],
+      "lab": "metal"
+    },
+    {
+      "id": "07-05",
+      "stage": 7,
+      "title": "Profile CPU, MLX & custom Metal fairly",
+      "minutes": 120,
+      "difficulty": "Advanced",
+      "prerequisites": ["07-04"],
+      "concepts": ["profile cpu", "mlx ", "custom metal fairly"],
+      "why": "Evidence-based profiling determines whether 5–15M parameters is realistic on your Mac.",
+      "objectives": [
+        "Explain profile cpu, mlx & custom metal fairly in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A useful benchmark controls shapes, dtypes, warm-up, synchronization, and result validation. Distinguish kernel time from end-to-end step time. Instruments and Metal profiling can reveal bandwidth limits, occupancy, and expensive command submission. Optimize the measured bottleneck."
+      ],
+      "equation": "\\mathrm{speedup}=t_{CPU}/t_{GPU}",
+      "example": "If a kernel is 10× faster but is only 10% of the original step, ideal overall speedup is about 1/(0.9+0.01)=1.10×.",
+      "exercise": "Compare the same matmul on CPU, MLX, and custom Metal. Publish median and variation plus an end-to-end training step measurement.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "Every timed variant passes the same numerical fixture and reports hardware and compiler configuration.",
+      "validation": "Every timed variant passes the same numerical fixture and reports hardware and compiler configuration.",
+      "mistake": "A fast isolated kernel may barely improve training throughput.",
+      "question": "What should you optimize first?",
+      "options": [
+        "The measured dominant cost",
+        "The shortest source file",
+        "There is not enough information to decide"
+      ],
+      "answer": 0,
+      "feedback": "If a kernel is 10× faster but is only 10% of the original step, ideal overall speedup is about 1/(0.9+0.01)=1.10×. A fast isolated kernel may barely improve training throughput.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Evidence-based profiling determines whether 5–15M parameters is realistic on your Mac.",
+      "video": "appleScale",
+      "resourceKeys": ["metalcpp", "metal", "mlx"],
+      "lab": "metal"
+    },
+    {
+      "id": "08-01",
+      "stage": 8,
+      "title": "Data quality, licenses & compute budgets",
+      "minutes": 75,
+      "difficulty": "Advanced",
+      "prerequisites": ["07-05"],
+      "concepts": ["data quality", "licenses ", "compute budgets"],
+      "why": "A feasible budget prevents unfinishable training plans.",
+      "objectives": [
+        "Explain data quality, licenses & compute budgets in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A training corpus needs provenance, a license permitting your use, deduplication, and independent evaluation documents. Model size and training tokens are separate decisions. Benchmark a tiny configuration before estimating a full run."
+      ],
+      "equation": "t_{run}\\approx N_{tokens}/r_{tokens/s}",
+      "example": "At a measured 2,000 tokens/s, 10 million tokens take about 5,000 seconds of training, excluding startup, evaluation, and checkpoints. This is an example, not an M5 Pro throughput claim.",
+      "exercise": "Create a data manifest and token counts. Measure 100 steady-state steps and project a budget with headroom.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "The manifest records source, license, filtering, split hashes, and measured throughput.",
+      "validation": "The manifest records source, license, filtering, split hashes, and measured throughput.",
+      "mistake": "Publicly downloadable text is not automatically licensed for redistribution.",
+      "question": "What should determine your run-time estimate?",
+      "options": [
+        "Chip marketing FLOPs alone",
+        "Measured throughput on your configuration",
+        "There is not enough information to decide"
+      ],
+      "answer": 1,
+      "feedback": "At a measured 2,000 tokens/s, 10 million tokens take about 5,000 seconds of training, excluding startup, evaluation, and checkpoints. This is an example, not an M5 Pro throughput claim. Publicly downloadable text is not automatically licensed for redistribution.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "A feasible budget prevents unfinishable training plans.",
+      "video": "gpt",
+      "resourceKeys": ["mlx", "llmc"],
+      "lab": "training"
+    },
+    {
+      "id": "08-02",
+      "stage": 8,
+      "title": "AdamW, clipping & learning-rate schedules",
+      "minutes": 90,
+      "difficulty": "Advanced",
+      "prerequisites": ["08-01"],
+      "concepts": ["adamw", "clipping ", "learning-rate schedules"],
+      "why": "Stable optimization lets controlled architecture experiments finish reliably.",
+      "objectives": [
+        "Explain adamw, clipping & learning-rate schedules in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "AdamW uses adaptive moments and decoupled weight decay. Clip the global gradient norm before updating to limit extreme steps. Warmup gradually raises the rate; decay lowers it later. Define which parameters receive decay and log the schedule against optimizer updates."
+      ],
+      "equation": "g\\leftarrow g\\min(1,c/\\|g\\|_2)",
+      "example": "For gradient [3,4] and clip norm 1, the clipped gradient is [0.6,0.8]. Its direction is preserved.",
+      "exercise": "Implement AdamW and norm clipping; compare a scalar update to a hand calculation and log warmup plus cosine decay.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "The global norm is bounded, moments are bias-corrected, and resume preserves the schedule step.",
+      "validation": "The global norm is bounded, moments are bias-corrected, and resume preserves the schedule step.",
+      "mistake": "Clipping each component is different from clipping the global norm.",
+      "question": "What is norm-clipped [3,4] at threshold 1?",
+      "options": [
+        "There is not enough information to decide",
+        "[1,1]",
+        "[0.6,0.8]"
+      ],
+      "answer": 2,
+      "feedback": "For gradient [3,4] and clip norm 1, the clipped gradient is [0.6,0.8]. Its direction is preserved. Clipping each component is different from clipping the global norm.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Stable optimization lets controlled architecture experiments finish reliably.",
+      "video": "activations",
+      "resourceKeys": ["mlx", "llmc"],
+      "lab": "training"
+    },
+    {
+      "id": "08-03",
+      "stage": 8,
+      "title": "Modern blocks: RMSNorm, RoPE & SwiGLU",
+      "minutes": 90,
+      "difficulty": "Advanced",
+      "prerequisites": ["08-02"],
+      "concepts": ["modern blocks", "rmsnorm", "rope ", "swiglu"],
+      "why": "Ablations distinguish measured improvements from architectural fashion.",
+      "objectives": [
+        "Explain modern blocks: rmsnorm, rope & swiglu in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A modern decoder may use RMSNorm, rotary positions, a gated feed-forward block, and tied input/output embeddings. Change one component at a time so you can attribute effects. Weight tying shares a single parameter table and requires summing both gradient paths."
+      ],
+      "equation": "\\mathrm{SwiGLU}(x)=\\mathrm{SiLU}(xW_g)\\odot(xW_u)",
+      "example": "A V×C tied table removes a second C×V output parameter matrix, saving V×C parameters while imposing a modeling constraint.",
+      "exercise": "Replace one baseline component per run, preserving data order and budget. Add a shared-weight gradient test before tying embeddings.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "Report validation loss and time for each individual ablation, not just a final combined run.",
+      "validation": "Report validation loss and time for each individual ablation, not just a final combined run.",
+      "mistake": "Modern architecture choices are not guaranteed improvements at tiny scale.",
+      "question": "What happens to gradients of tied weights?",
+      "options": [
+        "Contributions from both uses accumulate",
+        "One use overwrites the other",
+        "There is not enough information to decide"
+      ],
+      "answer": 0,
+      "feedback": "A V×C tied table removes a second C×V output parameter matrix, saving V×C parameters while imposing a modeling constraint. Modern architecture choices are not guaranteed improvements at tiny scale.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Ablations distinguish measured improvements from architectural fashion.",
+      "video": "architecture",
+      "resourceKeys": ["mlx", "llmc"],
+      "lab": "training"
+    },
+    {
+      "id": "08-04",
+      "stage": 8,
+      "title": "Precision, efficient attention & memory",
+      "minutes": 75,
+      "difficulty": "Advanced",
+      "prerequisites": ["08-03"],
+      "concepts": ["precision", "efficient attention ", "memory"],
+      "why": "Memory accounting bounds safe laptop experiments.",
+      "objectives": [
+        "Explain precision, efficient attention & memory in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Mixed precision uses lower precision for selected arithmetic while retaining stable accumulations or master state where needed. Attention’s full score matrix grows quadratically with context. Efficient attention algorithms avoid materializing all scores, but they require carefully verified kernels. KV caching accelerates inference by reusing past projections and does not remove training attention costs."
+      ],
+      "equation": "M_{scores}\\propto BHT^2",
+      "example": "Doubling context from 128 to 256 quadruples a materialized attention-score tensor. A KV cache instead grows linearly with context for fixed layers and width.",
+      "exercise": "Measure peak memory at two contexts. Compare float32 and supported lower precision on a fixed fixture; log loss drift and throughput.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "Your report separates training activations, optimizer state, and inference KV cache.",
+      "validation": "Your report separates training activations, optimizer state, and inference KV cache.",
+      "mistake": "Quantized inference support does not imply the same format is suitable for training.",
+      "question": "How do materialized scores scale when context doubles?",
+      "options": ["2×", "4×", "There is not enough information to decide"],
+      "answer": 1,
+      "feedback": "Doubling context from 128 to 256 quadruples a materialized attention-score tensor. A KV cache instead grows linearly with context for fixed layers and width. Quantized inference support does not imply the same format is suitable for training.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Memory accounting bounds safe laptop experiments.",
+      "video": "appleTrain",
+      "resourceKeys": ["mlx", "llmc"],
+      "lab": "training"
+    },
+    {
+      "id": "08-05",
+      "stage": 8,
+      "title": "Reproducible training & failure analysis",
+      "minutes": 120,
+      "difficulty": "Advanced",
+      "prerequisites": ["08-04"],
+      "concepts": ["reproducible training ", "failure analysis"],
+      "why": "This becomes the evidence section of your final engineering report.",
+      "objectives": [
+        "Explain reproducible training & failure analysis in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Record code revision, configuration, seed, data hashes, optimizer state, and actual compute. Plot training and validation loss at consistent intervals. Investigate divergence, overfitting, repetitions, and memorized samples separately. Grow from 100K–1M parameters only if measured throughput and memory justify larger runs."
+      ],
+      "equation": "\\mathrm{gap}=L_{val}-L_{train}",
+      "example": "Falling training loss with rising validation loss suggests overfitting; both losses suddenly becoming NaN suggests numerical or update instability.",
+      "exercise": "Run a baseline, interrupt and resume it, then write a model card with validation metrics and failure samples.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "A clean checkout can reproduce your small reference run; samples are labeled as learning-scale output.",
+      "validation": "A clean checkout can reproduce your small reference run; samples are labeled as learning-scale output.",
+      "mistake": "A 15M-parameter model is not promised to be a capable general assistant.",
+      "question": "What does a widening train/validation gap suggest?",
+      "options": [
+        "There is not enough information to decide",
+        "Guaranteed better generalization",
+        "Potential overfitting"
+      ],
+      "answer": 2,
+      "feedback": "Falling training loss with rising validation loss suggests overfitting; both losses suddenly becoming NaN suggests numerical or update instability. A 15M-parameter model is not promised to be a capable general assistant.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "This becomes the evidence section of your final engineering report.",
+      "video": "gpt",
+      "resourceKeys": ["mlx", "llmc"],
+      "lab": "training"
+    },
+    {
+      "id": "09-01",
+      "stage": 9,
+      "title": "Base models, instruction tuning & chat templates",
+      "minutes": 75,
+      "difficulty": "Advanced",
+      "prerequisites": ["08-05"],
+      "concepts": ["base models", "instruction tuning ", "chat templates"],
+      "why": "Correct formatting is the first requirement for a usable local conversation interface.",
+      "objectives": [
+        "Explain base models, instruction tuning & chat templates in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A base model continues text; an instruction-tuned model learns patterns of following requests. A chat template serializes roles, messages, separators, and generation boundaries. Templates are model-specific and must match training."
+      ],
+      "equation": "\\mathrm{chat}=\\mathrm{template}(\\mathrm{messages})",
+      "example": "Writing User: and Assistant: is only correct if those strings are the model’s actual format; other models use special token sequences.",
+      "exercise": "Inspect a chosen model’s tokenizer template and license. Render a two-turn conversation and show exact token IDs.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "Round-trip the serialization and confirm where assistant generation begins.",
+      "validation": "Round-trip the serialization and confirm where assistant generation begins.",
+      "mistake": "A system prompt is not a formal guarantee of model behavior.",
+      "question": "Which chat template should inference use?",
+      "options": [
+        "The one expected by the chosen model",
+        "Any readable role labels",
+        "There is not enough information to decide"
+      ],
+      "answer": 0,
+      "feedback": "Writing User: and Assistant: is only correct if those strings are the model’s actual format; other models use special token sequences. A system prompt is not a formal guarantee of model behavior.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Correct formatting is the first requirement for a usable local conversation interface.",
+      "video": "posttraining",
+      "resourceKeys": ["mlxlm", "llama", "lora"],
+      "lab": "assistant"
+    },
+    {
+      "id": "09-02",
+      "stage": 9,
+      "title": "Local inference, quantization & a C++ CLI",
+      "minutes": 90,
+      "difficulty": "Advanced",
+      "prerequisites": ["09-01"],
+      "concepts": ["local inference", "quantization ", "a c++ cli"],
+      "why": "A pretrained baseline gives the specialized scratch model an honest competitor.",
+      "objectives": [
+        "Explain local inference, quantization & a c++ cli in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Pretrained open-weight models provide a practical assistant baseline. Quantization reduces weight storage with some accuracy and performance tradeoffs. llama.cpp supports C/C++ integration; MLX-LM provides Apple Silicon workflows. Model architecture and license compatibility must be checked explicitly."
+      ],
+      "equation": "M_{raw}\\approx P\\cdot b/8",
+      "example": "One billion 4-bit weights use roughly 0.5 GB before scales, metadata, activations, and KV cache; actual runtime memory is larger.",
+      "exercise": "Run a small compatible model using the official current instructions, then wrap inference in a CLI with reset, exit, and context limits.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "Record peak memory, first-token latency, generation speed, model revision, and license.",
+      "validation": "Record peak memory, first-token latency, generation speed, model revision, and license.",
+      "mistake": "A downloaded model is pretrained; do not label it trained from scratch.",
+      "question": "Does a 4-bit file size equal runtime memory?",
+      "options": ["Yes", "No", "There is not enough information to decide"],
+      "answer": 1,
+      "feedback": "One billion 4-bit weights use roughly 0.5 GB before scales, metadata, activations, and KV cache; actual runtime memory is larger. A downloaded model is pretrained; do not label it trained from scratch.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "A pretrained baseline gives the specialized scratch model an honest competitor.",
+      "video": "mlx",
+      "resourceKeys": ["mlxlm", "llama", "lora"],
+      "lab": "assistant"
+    },
+    {
+      "id": "09-03",
+      "stage": 9,
+      "title": "Instruction data, LoRA & QLoRA",
+      "minutes": 90,
+      "difficulty": "Advanced",
+      "prerequisites": ["09-02"],
+      "concepts": ["instruction data", "lora ", "qlora"],
+      "why": "Adapters are a practical path to specialization without full retraining.",
+      "objectives": [
+        "Explain instruction data, lora & qlora in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Supervised fine-tuning trains on demonstrations with carefully chosen loss masks. LoRA adds low-rank parameter updates while freezing base weights. QLoRA combines low-rank adaptation with a quantized base; support and numeric details vary by runtime. Data quality and leakage control remain essential."
+      ],
+      "equation": "\\Delta W=BA,\\quad B\\in\\mathbb{R}^{d_o\\times r},A\\in\\mathbb{R}^{r\\times d_i}",
+      "example": "For a 512×512 matrix with rank 8, LoRA has 8,192 trainable entries instead of 262,144, ignoring optional biases.",
+      "exercise": "Create 100 reviewed demonstrations and a separate held-out set. Inspect MLX-LM’s current adapter instructions and run a tiny supported adaptation.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "Report held-out task accuracy before and after tuning plus adapter size and training memory.",
+      "validation": "Report held-out task accuracy before and after tuning plus adapter size and training memory.",
+      "mistake": "Fine-tuning does not reliably insert a factual database or erase hallucinations.",
+      "question": "What remains frozen in ordinary LoRA?",
+      "options": [
+        "There is not enough information to decide",
+        "All adapter weights",
+        "Base weights"
+      ],
+      "answer": 2,
+      "feedback": "For a 512×512 matrix with rank 8, LoRA has 8,192 trainable entries instead of 262,144, ignoring optional biases. Fine-tuning does not reliably insert a factual database or erase hallucinations.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Adapters are a practical path to specialization without full retraining.",
+      "video": "posttraining",
+      "resourceKeys": ["mlxlm", "llama", "lora"],
+      "lab": "assistant"
+    },
+    {
+      "id": "09-04",
+      "stage": 9,
+      "title": "Retrieval, tools & multi-turn context",
+      "minutes": 75,
+      "difficulty": "Advanced",
+      "prerequisites": ["09-03"],
+      "concepts": ["retrieval", "tools ", "multi-turn context"],
+      "why": "External evidence can improve the practical assistant without requiring larger scratch training.",
+      "objectives": [
+        "Explain retrieval, tools & multi-turn context in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Retrieval adds selected evidence to the prompt; tools execute explicit operations outside the model. Neither guarantees a correct answer. Track source IDs and validate tool arguments. Context windows are finite, so define truncation and summarization policies and test them across multiple turns."
+      ],
+      "equation": "\\mathrm{answer}=f(\\mathrm{query},\\mathrm{retrieved\\ evidence})",
+      "example": "A rules assistant can retrieve a policy paragraph and propose a JSON rule, while a deterministic validator rejects unknown field names.",
+      "exercise": "Implement a small local text retrieval baseline and compare it with no retrieval. Add citations and a conversation reset command.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "Answers identify actual retrieved documents and reject unsupported tool arguments.",
+      "validation": "Answers identify actual retrieved documents and reject unsupported tool arguments.",
+      "mistake": "Retrieval is not the same as training new weights.",
+      "question": "What does retrieval change at inference?",
+      "options": [
+        "The supplied context",
+        "The model’s stored parameters",
+        "There is not enough information to decide"
+      ],
+      "answer": 0,
+      "feedback": "A rules assistant can retrieve a policy paragraph and propose a JSON rule, while a deterministic validator rejects unknown field names. Retrieval is not the same as training new weights.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "External evidence can improve the practical assistant without requiring larger scratch training.",
+      "video": "mlx",
+      "resourceKeys": ["mlxlm", "llama", "lora"],
+      "lab": "assistant"
+    },
+    {
+      "id": "09-05",
+      "stage": 9,
+      "title": "Evaluate conversations & constrained scratch models",
+      "minutes": 120,
+      "difficulty": "Advanced",
+      "prerequisites": ["09-04"],
+      "concepts": ["evaluate conversations ", "constrained scratch models"],
+      "why": "This decides whether the assistant has an objectively useful capability.",
+      "objectives": [
+        "Explain evaluate conversations & constrained scratch models in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A narrow scratch conversational model may learn a restricted format on constrained data; compare it with a pretrained baseline and simple rules. Evaluate multi-turn retention, unsupported claims, task correctness, and invalid outputs. Keep a frozen test set that was never used to generate training examples."
+      ],
+      "equation": "\\mathrm{accuracy}=N_{correct}/N_{heldout}",
+      "example": "A fluent answer that reverses a rule’s inequality is incorrect even if its JSON parses. Parsing success and semantic accuracy must be reported separately.",
+      "exercise": "Build 50 held-out tasks including follow-ups and counterexamples. Evaluate scratch, pretrained, and rule-based systems on identical inputs.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "Publish per-category accuracy, invalid-output rate, and representative failures.",
+      "validation": "Publish per-category accuracy, invalid-output rate, and representative failures.",
+      "mistake": "User satisfaction from a few cherry-picked conversations is not an evaluation.",
+      "question": "What is success for the final assistant?",
+      "options": [
+        "Plausible prose alone",
+        "Held-out task correctness",
+        "There is not enough information to decide"
+      ],
+      "answer": 1,
+      "feedback": "A fluent answer that reverses a rule’s inequality is incorrect even if its JSON parses. Parsing success and semantic accuracy must be reported separately. User satisfaction from a few cherry-picked conversations is not an evaluation.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "This decides whether the assistant has an objectively useful capability.",
+      "video": "posttraining",
+      "resourceKeys": ["mlxlm", "llama", "lora"],
+      "lab": "assistant"
+    },
+    {
+      "id": "10-01",
+      "stage": 10,
+      "title": "Define a formal rules language",
+      "minutes": 75,
+      "difficulty": "Advanced",
+      "prerequisites": ["09-05"],
+      "concepts": ["define a formal rules language"],
+      "why": "Formal semantics create an executable target for the specialized assistant.",
+      "objectives": [
+        "Explain define a formal rules language in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Start with a small grammar and exact semantics. A useful schema might contain field, operator, and value, with a restricted vocabulary. Define units and boundary behavior before generating training data. A deterministic interpreter is your ground truth."
+      ],
+      "equation": "\\mathrm{accept}(x)=\\bigwedge_i r_i(x)",
+      "example": "“Age at least 18” means age≥18, so 18 passes and 17 fails. “Over 18” means >18 and has a different boundary.",
+      "exercise": "Define a JSON rule schema, interpreter, and 20 boundary fixtures for age and spending limits.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "Invalid operators and missing values fail validation; boundary fixtures pass.",
+      "validation": "Invalid operators and missing values fail validation; boundary fixtures pass.",
+      "mistake": "Valid JSON does not imply a meaningful or correct rule.",
+      "question": "Does “at least 18” include 18?",
+      "options": ["There is not enough information to decide", "No", "Yes"],
+      "answer": 2,
+      "feedback": "“Age at least 18” means age≥18, so 18 passes and 17 fails. “Over 18” means >18 and has a different boundary. Valid JSON does not imply a meaningful or correct rule.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Formal semantics create an executable target for the specialized assistant.",
+      "video": "posttraining",
+      "resourceKeys": ["llama", "mlxlm"],
+      "lab": "rules"
+    },
+    {
+      "id": "10-02",
+      "stage": 10,
+      "title": "Constrained decoding & deterministic validators",
+      "minutes": 90,
+      "difficulty": "Advanced",
+      "prerequisites": ["10-01"],
+      "concepts": ["constrained decoding ", "deterministic validators"],
+      "why": "Deterministic validators put trustworthy boundaries around model-generated rules.",
+      "objectives": [
+        "Explain constrained decoding & deterministic validators in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Grammar-constrained decoding restricts allowable token continuations. It can improve syntax validity without ensuring semantic correctness. Run a schema validator, type checks, and domain constraints after decoding. Keep model proposal and deterministic acceptance separate."
+      ],
+      "equation": "\\mathrm{valid}=\\mathrm{syntax}\\land\\mathrm{types}\\land\\mathrm{domain}",
+      "example": "A rule with age≥-100 may parse and type-check yet violate the permitted domain. A perfectly valid age>18 rule still mistranslates “at least 18”.",
+      "exercise": "Integrate a supported grammar mode or reject invalid outputs after generation. Add separate syntax, domain, and semantic scores.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "Your evaluation distinguishes all three failure classes and never counts rejected output as success.",
+      "validation": "Your evaluation distinguishes all three failure classes and never counts rejected output as success.",
+      "mistake": "Constrained decoding does not prove the translation preserves meaning.",
+      "question": "What does a grammar primarily constrain?",
+      "options": [
+        "Output syntax",
+        "Truth of every statement",
+        "There is not enough information to decide"
+      ],
+      "answer": 0,
+      "feedback": "A rule with age≥-100 may parse and type-check yet violate the permitted domain. A perfectly valid age>18 rule still mistranslates “at least 18”. Constrained decoding does not prove the translation preserves meaning.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Deterministic validators put trustworthy boundaries around model-generated rules.",
+      "video": "posttraining",
+      "resourceKeys": ["llama", "mlxlm"],
+      "lab": "rules"
+    },
+    {
+      "id": "10-03",
+      "stage": 10,
+      "title": "Synthetic data & systematic generalization",
+      "minutes": 90,
+      "difficulty": "Advanced",
+      "prerequisites": ["10-02"],
+      "concepts": ["synthetic data ", "systematic generalization"],
+      "why": "This tests whether the specialized model learned a rule or memorized a template.",
+      "objectives": [
+        "Explain synthetic data & systematic generalization in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Generate training examples from a controlled grammar, but hold out meaningful combinations and paraphrase families. Random row splits can leak nearly identical templates. Human review catches ambiguities that automatic generation reproduces at scale."
+      ],
+      "equation": "D_{train}\\cap D_{test}=\\varnothing",
+      "example": "Train on age≥18 and spend≤100, then test unseen field/operator combinations and wording rather than only new numeric values.",
+      "exercise": "Generate paired requirement/rule data with provenance IDs. Split by template family and reserve adversarial negations.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "No paraphrase family crosses splits; a manually reviewed sample has documented acceptance criteria.",
+      "validation": "No paraphrase family crosses splits; a manually reviewed sample has documented acceptance criteria.",
+      "mistake": "More synthetic rows cannot compensate for systematic labeling mistakes.",
+      "question": "Which split best tests new wording?",
+      "options": [
+        "Random duplicate rows",
+        "Held-out paraphrase families",
+        "There is not enough information to decide"
+      ],
+      "answer": 1,
+      "feedback": "Train on age≥18 and spend≤100, then test unseen field/operator combinations and wording rather than only new numeric values. More synthetic rows cannot compensate for systematic labeling mistakes.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "This tests whether the specialized model learned a rule or memorized a template.",
+      "video": "posttraining",
+      "resourceKeys": ["llama", "mlxlm"],
+      "lab": "rules"
+    },
+    {
+      "id": "10-04",
+      "stage": 10,
+      "title": "Verifier-guided generation & safe failure",
+      "minutes": 75,
+      "difficulty": "Advanced",
+      "prerequisites": ["10-03"],
+      "concepts": ["verifier-guided generation ", "safe failure"],
+      "why": "Safe failure makes a narrow assistant more useful than unchecked generation.",
+      "objectives": [
+        "Explain verifier-guided generation & safe failure in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A verifier can reject invalid proposals and request another candidate. Limit retries and report failure explicitly. Verification is only as strong as its specification: passing tests on a few examples does not prove semantic equivalence for all inputs."
+      ],
+      "equation": "\\mathrm{candidate}\\xrightarrow{verify}\\{\\mathrm{accept},\\mathrm{reject}\\}",
+      "example": "A wrong inequality may pass examples far from its boundary. Add the exact boundary and neighboring values to expose it.",
+      "exercise": "Implement a bounded three-attempt proposal/validation loop. Log rejection reasons and include impossible or ambiguous requests.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "The system can abstain; retries and verifier cost are included in latency and accuracy reports.",
+      "validation": "The system can abstain; retries and verifier cost are included in latency and accuracy reports.",
+      "mistake": "A verifier score is not automatically a formal proof.",
+      "question": "What should happen after all candidates fail?",
+      "options": [
+        "There is not enough information to decide",
+        "Silently return the last invalid candidate",
+        "Explicit failure or clarification"
+      ],
+      "answer": 2,
+      "feedback": "A wrong inequality may pass examples far from its boundary. Add the exact boundary and neighboring values to expose it. A verifier score is not automatically a formal proof.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Safe failure makes a narrow assistant more useful than unchecked generation.",
+      "video": "posttraining",
+      "resourceKeys": ["llama", "mlxlm"],
+      "lab": "rules"
+    },
+    {
+      "id": "10-05",
+      "stage": 10,
+      "title": "Ablations & rule-based baselines",
+      "minutes": 120,
+      "difficulty": "Advanced",
+      "prerequisites": ["10-04"],
+      "concepts": ["ablations ", "rule-based baselines"],
+      "why": "This supplies the objective result your capstone must defend.",
+      "objectives": [
+        "Explain ablations & rule-based baselines in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A baseline answers whether a model is necessary. Compare deterministic parsing, scratch training, pretrained prompting, retrieval, and adaptation under the same test set. An ablation removes one component to measure its contribution."
+      ],
+      "equation": "\\Delta=\\mathrm{score}_{full}-\\mathrm{score}_{ablated}",
+      "example": "If retrieval adds latency without improving held-out semantic accuracy, it is not helping this task under the tested conditions.",
+      "exercise": "Run one table with accuracy, validity, latency, memory, and examples of failures for every baseline.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "The report includes confidence limits or raw counts and preserves the frozen evaluation set.",
+      "validation": "The report includes confidence limits or raw counts and preserves the frozen evaluation set.",
+      "mistake": "The most complex system is not necessarily the best product.",
+      "question": "What makes a baseline comparison fair?",
+      "options": [
+        "The same held-out tasks and metrics",
+        "Different curated prompts per model",
+        "There is not enough information to decide"
+      ],
+      "answer": 0,
+      "feedback": "If retrieval adds latency without improving held-out semantic accuracy, it is not helping this task under the tested conditions. The most complex system is not necessarily the best product.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "This supplies the objective result your capstone must defend.",
+      "video": "posttraining",
+      "resourceKeys": ["llama", "mlxlm"],
+      "lab": "rules"
+    },
+    {
+      "id": "11-01",
+      "stage": 11,
+      "title": "Package the C++ model & configuration",
+      "minutes": 75,
+      "difficulty": "Advanced",
+      "prerequisites": ["10-05"],
+      "concepts": ["package the c++ model ", "configuration"],
+      "why": "Packaging makes the model usable outside your development session.",
+      "objectives": [
+        "Explain package the c++ model & configuration in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A reproducible project defines architecture, tokenizer, training data recipe, checkpoint schema, and commands in version control. Separate model code from experiment configuration. Keep licenses and large weight distribution explicit."
+      ],
+      "equation": "\\mathrm{artifact}=\\mathrm{code}+\\mathrm{config}+\\mathrm{data\\ recipe}",
+      "example": "A checkpoint without its vocabulary can generate IDs that map to the wrong text even if all tensor shapes load.",
+      "exercise": "Create a clean build target, a tiny fixture dataset, sample config, and a documented checkpoint manifest.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "A second clean directory can run the smoke example using documented commands.",
+      "validation": "A second clean directory can run the smoke example using documented commands.",
+      "mistake": "A README cannot substitute for a missing runnable entry point.",
+      "question": "What must accompany a checkpoint?",
+      "options": [
+        "Only a screenshot of the loss",
+        "Matching tokenizer and architecture metadata",
+        "There is not enough information to decide"
+      ],
+      "answer": 1,
+      "feedback": "A checkpoint without its vocabulary can generate IDs that map to the wrong text even if all tensor shapes load. A README cannot substitute for a missing runnable entry point.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "Packaging makes the model usable outside your development session.",
+      "video": "gpt",
+      "resourceKeys": ["llmc", "mlx"],
+      "lab": "capstone"
+    },
+    {
+      "id": "11-02",
+      "stage": 11,
+      "title": "Reproduce training & validate acceleration",
+      "minutes": 90,
+      "difficulty": "Advanced",
+      "prerequisites": ["11-01"],
+      "concepts": ["reproduce training ", "validate acceleration"],
+      "why": "This demonstrates that the Apple Silicon path implements the same model.",
+      "objectives": [
+        "Explain reproduce training & validate acceleration in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "Your final report must show correctness and speed separately. Preserve a CPU reference and include gradient comparisons for accelerated operations. A small deterministic reproduction run is more useful than an unaffordable full rerun."
+      ],
+      "equation": "\\epsilon_{rel}=\\frac{|a-b|}{\\max(10^{-8},|a|+|b|)}",
+      "example": "A GPU result can be faster yet unacceptable if a causal-mask bug lowers loss through target leakage.",
+      "exercise": "Run CPU/GPU fixtures, checkpoint resume tests, and a clean end-to-end tiny training reproduction.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "Publish tolerances, actual errors, hardware, compiler/runtime revisions, and measured speed.",
+      "validation": "Publish tolerances, actual errors, hardware, compiler/runtime revisions, and measured speed.",
+      "mistake": "Performance without numerical correctness is not a successful optimization.",
+      "question": "What should precede a speed claim?",
+      "options": [
+        "There is not enough information to decide",
+        "A larger batch screenshot",
+        "A correctness comparison"
+      ],
+      "answer": 2,
+      "feedback": "A GPU result can be faster yet unacceptable if a causal-mask bug lowers loss through target leakage. Performance without numerical correctness is not a successful optimization.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "This demonstrates that the Apple Silicon path implements the same model.",
+      "video": "appleScale",
+      "resourceKeys": ["llmc", "mlx"],
+      "lab": "capstone"
+    },
+    {
+      "id": "11-03",
+      "stage": 11,
+      "title": "Publish evaluations & a model card",
+      "minutes": 90,
+      "difficulty": "Advanced",
+      "prerequisites": ["11-02"],
+      "concepts": ["publish evaluations ", "a model card"],
+      "why": "The report communicates what the completed system can actually do.",
+      "objectives": [
+        "Explain publish evaluations & a model card in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A model card records intended use, training data, metrics, limitations, and known failures. Keep educational text generation and practical assistant performance separate. Include the cost and quality tradeoffs of the pretrained alternative."
+      ],
+      "equation": "\\mathrm{report}=\\{\\mathrm{metrics},\\mathrm{protocol},\\mathrm{limits}\\}",
+      "example": "A model may have lower character perplexity but worse rule translation accuracy. Those metrics answer different questions.",
+      "exercise": "Write a model card with loss curves, throughput, peak memory, test counts, invalid-output rate, and at least five failures.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "Every numerical claim points to a logged run and a defined measurement protocol.",
+      "validation": "Every numerical claim points to a logged run and a defined measurement protocol.",
+      "mistake": "Qualitative samples alone cannot substantiate task performance.",
+      "question": "Can perplexity replace semantic rule accuracy?",
+      "options": ["No", "Yes", "There is not enough information to decide"],
+      "answer": 0,
+      "feedback": "A model may have lower character perplexity but worse rule translation accuracy. Those metrics answer different questions. Qualitative samples alone cannot substantiate task performance.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "The report communicates what the completed system can actually do.",
+      "video": "posttraining",
+      "resourceKeys": ["llmc", "mlx"],
+      "lab": "capstone"
+    },
+    {
+      "id": "11-04",
+      "stage": 11,
+      "title": "Deliver the conversational interface",
+      "minutes": 75,
+      "difficulty": "Advanced",
+      "prerequisites": ["11-03"],
+      "concepts": ["deliver the conversational interface"],
+      "why": "This turns the research artifacts into a usable specialized assistant.",
+      "objectives": [
+        "Explain deliver the conversational interface in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A small CLI can be a complete product when it has reliable model loading, explicit context behavior, validation feedback, and predictable exit/reset controls. Display whether a response came from the scratch model or a pretrained model."
+      ],
+      "equation": "\\mathrm{request}\\to\\mathrm{model}\\to\\mathrm{validator}\\to\\mathrm{response}",
+      "example": "A user asks “allow adults”; the CLI should request a precise boundary when the domain definition is ambiguous instead of inventing one.",
+      "exercise": "Package the CLI, write usage examples, and run multi-turn, empty-input, oversized-context, and invalid-output tests.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "The documented demo works from a clean checkout and communicates validation failures clearly.",
+      "validation": "The documented demo works from a clean checkout and communicates validation failures clearly.",
+      "mistake": "An interface that always emits text is not necessarily robust.",
+      "question": "How should ambiguous requirements be handled?",
+      "options": [
+        "Invent an unstated definition",
+        "Request clarification or abstain",
+        "There is not enough information to decide"
+      ],
+      "answer": 1,
+      "feedback": "A user asks “allow adults”; the CLI should request a precise boundary when the domain definition is ambiguous instead of inventing one. An interface that always emits text is not necessarily robust.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "This turns the research artifacts into a usable specialized assistant.",
+      "video": "posttraining",
+      "resourceKeys": ["llmc", "mlx"],
+      "lab": "capstone"
+    },
+    {
+      "id": "11-05",
+      "stage": 11,
+      "title": "Engineering review & your next experiment",
+      "minutes": 120,
+      "difficulty": "Advanced",
+      "prerequisites": ["11-04"],
+      "concepts": ["engineering review ", "your next experiment"],
+      "why": "You can now investigate language models independently and explain the evidence.",
+      "objectives": [
+        "Explain engineering review & your next experiment in your own words.",
+        "Work through the numerical example and justify each step.",
+        "Produce the exercise evidence described below."
+      ],
+      "explanation": [
+        "A final review explains architecture, derivations, implementation tradeoffs, experiments, failures, and next steps. Distinguish what you implemented from what a dependency supplied. Choose the next experiment based on the strongest unresolved evidence gap."
+      ],
+      "equation": "\\mathrm{next\\ experiment}=\\mathrm{hypothesis}+\\mathrm{control}+\\mathrm{metric}",
+      "example": "If held-out negations fail, a targeted data and semantics experiment may be more informative than doubling parameter count.",
+      "exercise": "Present your model and assistant with a reproducible demo. Include a component ownership map and propose one bounded follow-up experiment.",
+      "guidance": "Keep the CPU implementation as an oracle. Pin dependency versions or commits, record configuration and hardware, and report observed results rather than expected performance.",
+      "expected": "All capstone checklist items have linked evidence; limitations state actual observed failures.",
+      "validation": "All capstone checklist items have linked evidence; limitations state actual observed failures.",
+      "mistake": "Finishing the course does not imply a tiny model matches a frontier assistant.",
+      "question": "What should guide the next experiment?",
+      "options": [
+        "There is not enough information to decide",
+        "Parameter count alone",
+        "A testable hypothesis from observed failures"
+      ],
+      "answer": 2,
+      "feedback": "If held-out negations fail, a targeted data and semantics experiment may be more informative than doubling parameter count. Finishing the course does not imply a tiny model matches a frontier assistant.",
+      "completion": [
+        "Explain the worked example without consulting the answer.",
+        "Complete the assignment and record its observed validation results.",
+        "Answer the knowledge check, then explicitly mark this lesson complete."
+      ],
+      "connection": "You can now investigate language models independently and explain the evidence.",
+      "video": "gpt",
+      "resourceKeys": ["llmc", "mlx"],
+      "lab": "capstone"
+    }
+  ]
+}
