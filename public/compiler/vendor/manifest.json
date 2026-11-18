@@ -1,0 +1,32 @@
+{
+  "upstream": "cppstudio-io/wasm-clang-runtime",
+  "commit": "df1180d80184733c6a01599f76b92b4001d20f87",
+  "release": "v0.1.0",
+  "assets": {
+    "clang22-noeh": {
+      "bytes": 36100574,
+      "gzipBytes": 13503900,
+      "sha256": "e01346e33b31a3b3359a317450502bd4feb78cd6ca7fed08aca8601f9ff8834d",
+      "gzipSha256": "c8eb883183db12a50ecf68d645be32aa261d9339fdfb0abea04be7217e92029c"
+    },
+    "lld22-noeh": {
+      "bytes": 19183252,
+      "gzipBytes": 7626254,
+      "sha256": "63c397c582e193aacd96fbdeb04b1bd32f47ae505f6dc4a569ed08a80ddfeff7",
+      "gzipSha256": "4bb8aa89b202853eaf293395ff38fef0908e1604a002a593cc43b289c340bee1"
+    },
+    "sysroot22.tar": {
+      "bytes": 39876608,
+      "gzipBytes": 6775964,
+      "sha256": "d991c621cdf9b4640c2cd4aa21abb08491c2ae6ef9917cac5c6065553604bcec",
+      "gzipSha256": "7c37c8b95386cc5d87bffd65e79b32c16774b3987a9287ce75b0b6ef1a59f840"
+    },
+    "memfs": {
+      "bytes": 97099,
+      "sha256": "8354810a29ce761771e19fea911c95d2ba666668dc31aa0a605ecb82ab0c1b1c",
+      "build": "Pinned memfs.c + stb_sprintf.h; wasi-sdk 33.0 arm64-macos; commands in docs/EXECUTION_OPTIONS.md",
+      "gzipBytes": 38275,
+      "gzipSha256": "7531d8ed2e3b130fb48de4cb43c2f612aa092ac9469a5b5399686e6d5b45eaa6"
+    }
+  }
+}

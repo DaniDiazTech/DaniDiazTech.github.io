@@ -18,7 +18,7 @@ export default defineConfig({
   webServer: process.env.BASE_URL
     ? undefined
     : {
-        command: "npm run dev -- --port 4187 --strictPort",
+        command: "npm run build && npm run preview -- --port 4187 --strictPort",
         url: "http://127.0.0.1:4187",
         reuseExistingServer: false,
       },

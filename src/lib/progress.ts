@@ -1,4 +1,5 @@
 import { lessons } from "../content/curriculum";
+import { challenges, type CodingRecord } from "../content/challenges";
 export const STORAGE_KEY = "model-lab.progress.v1";
 export type Progress = {
   version: 1;
@@ -11,6 +12,7 @@ export type Progress = {
   lastLesson: string;
   pace: number;
   projects: number[];
+  coding: Record<string, CodingRecord>;
 };
 export const freshProgress = (): Progress => ({
   version: 1,
@@ -23,6 +25,7 @@ export const freshProgress = (): Progress => ({
   lastLesson: lessons[0].id,
   pace: 8,
   projects: [],
+  coding: {},
 });
 const ids = new Set(lessons.map((l) => l.id));
 export function parseProgress(raw: string): Progress {
@@ -81,6 +84,35 @@ export function parseProgress(raw: string): Progress {
         ),
       ]
     : [];
+  if (v.coding !== undefined) {
+    if (!v.coding || typeof v.coding !== "object" || Array.isArray(v.coding))
+      throw new Error("Invalid coding drafts.");
+    for (const [id, record] of Object.entries(v.coding)) {
+      const challenge = challenges.find((c) => c.id === id);
+      if (!challenge || !record || typeof record !== "object") continue;
+      const r = record as Record<string, unknown>;
+      if (
+        typeof r.code !== "string" ||
+        r.code.length > 50000 ||
+        typeof r.testedCode !== "string" ||
+        r.testedCode.length > 50000 ||
+        !Number.isInteger(r.passedChecks) ||
+        Number(r.passedChecks) < 0 ||
+        Number(r.passedChecks) > challenge.tests.length ||
+        r.totalChecks !== challenge.tests.length ||
+        typeof r.updated !== "string"
+      )
+        continue;
+      out.coding[id] = {
+        code: r.code,
+        testedCode: r.testedCode,
+        passedChecks: Number(r.passedChecks),
+        runSucceeded: r.runSucceeded === true,
+        totalChecks: challenge.tests.length,
+        updated: r.updated,
+      };
+    }
+  }
   return out;
 }
 export function loadProgress(): { data: Progress; warning: string } {

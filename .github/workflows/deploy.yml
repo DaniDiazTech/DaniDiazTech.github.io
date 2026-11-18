@@ -20,12 +20,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run verify:compiler
       - run: npm test
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - name: Check C++ reference programs
         run: bash scripts/test-labs.sh
+      - name: Verify C++ mini-lab references and starters
+        run: npm run test:challenges
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

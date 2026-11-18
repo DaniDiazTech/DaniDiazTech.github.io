@@ -56,3 +56,11 @@ Use `npx prettier --write src tests '*.ts' '*.json'` for frontend formatting. Do
 - KaTeX renders authored equations with trust disabled by default; imported notes are rendered as plain text.
 - Simulations state their simplifying assumptions. Causal attention must normalize each visible row, and tokenization must never claim to be BPE when it only splits code points/bytes.
 - Keep an honest distinction between a tested reference program, a starter, an assignment, and a student’s finished capstone.
+
+## Author a small executable challenge
+
+Edit `src/content/challenges.json`. Keep a stable challenge ID and associate it with the actual prerequisite lessons through `lessonIds`. Each challenge has a bounded prompt, function-only starter, reference solution, at least three visible C++ assertions with explanations, two progressive hints, and a transfer task. Keep a drill small; it is not a substitute for the larger local assignment. Shared drills must be related to every lesson that references them.
+
+`fullSource()` in `src/content/challenges.ts` attaches the standard includes and transparent harness. Do not duplicate the browser checks in a separate test implementation. `npm run test:challenges` compiles every actual starter and reference using this same builder; references must pass and starters must still require implementation. Use portable single-file CPU code supported by our no-exceptions WASI environment. Include boundary, sign, shape, and numerical-stability cases where relevant. Do not claim hidden tests, grading security, or general correctness from a handful of checks.
+
+The coding bench lazy-loads its editor and only loads compiler assets after Run checks. Keep the worker termination, output cap, source cap, memory limit, and run watchdog intact. Clear stale pass badges whenever draft and tested source differ. Extend the additive backup parser without losing older v1 notes or completions. Update `docs/EXECUTION_OPTIONS.md` and retain third-party notices when changing the pinned runtime. The initial challenge authoring script preserves draft provenance; edit the JSON rather than regenerating over later corrections.

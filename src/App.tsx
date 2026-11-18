@@ -3,6 +3,8 @@ import {
   useState,
   createContext,
   useContext,
+  lazy,
+  Suspense,
   type ReactNode,
 } from "react";
 import {
@@ -66,6 +68,22 @@ import {
   type Progress,
 } from "./lib/progress";
 import { Playgrounds, Gradient } from "./components/Playgrounds";
+import type { CodingRecord } from "./content/challenges";
+const CodingLab = lazy(() => import("./components/CodingLab"));
+function CodingPractice({ lessonId }: { lessonId?: string }) {
+  const { p, update } = useProgress();
+  return (
+    <Suspense fallback={<p>Loading the coding editor…</p>}>
+      <CodingLab
+        lessonId={lessonId}
+        records={p.coding}
+        onSave={(id: string, value: CodingRecord) =>
+          update((p) => ({ ...p, coding: { ...p.coding, [id]: value } }))
+        }
+      />
+    </Suspense>
+  );
+}
 type Store = { p: Progress; update: (fn: (p: Progress) => Progress) => void };
 const Context = createContext<Store>(null!);
 const useProgress = () => useContext(Context);
@@ -629,7 +647,6 @@ function Code({ children }: { children: string }) {
     </div>
   );
 }
-const starter = `#include <cmath>\n#include <iostream>\n\nint main() {\n    double w = 0.0;\n    constexpr double rate = 0.1;\n    for (int step = 0; step < 50; ++step) {\n        const double gradient = 2.0 * (w - 3.0);\n        w -= rate * gradient;\n        std::cout << step << " " << w << " "\n                  << std::pow(w - 3.0, 2) << "\\n";\n    }\n}`;
 function Exercises({ lesson: l }: { lesson: Lesson }) {
   const { p, update } = useProgress();
   const reference =
@@ -649,6 +666,13 @@ function Exercises({ lesson: l }: { lesson: Lesson }) {
       <div className="eyebrow">BUILD SOMETHING YOU CAN TEST</div>
       <h2>Your assignment</h2>
       <p>{l.exercise}</p>
+      <CodingPractice lessonId={l.id} />
+      <h2>The larger local assignment</h2>
+      <p>
+        The mini-lab isolates one prerequisite skill. Complete the full
+        assignment above locally, using the implementation constraints and
+        validation evidence below.
+      </p>
       <h3>Implementation constraints</h3>
       <p>{l.guidance}</p>
       <h3>Suggested workspace</h3>
@@ -669,31 +693,18 @@ function Exercises({ lesson: l }: { lesson: Lesson }) {
       <p>
         In results.md record your hypothesis, command, input, actual output,
         seed, and explanation of any discrepancy. Completion is based on your
-        work; this browser does not compile or inspect local C++.
+        work. The browser checks small C++ snippets; it does not inspect your
+        local project files.
       </p>
       <details>
-        <summary>Hint: how to start</summary>
-        <p>
-          {l.stage < 5
-            ? "First reproduce the worked example with constants. Then extract a pure function and test a second input before writing a training loop."
-            : "Start with the smallest configuration and a known numerical fixture. Compare against your earlier baseline before scaling."}
-        </p>
-      </details>
-      <details>
-        <summary>Reveal solution explanation</summary>
-        <p>{l.example}</p>
+        <summary>Review the larger assignment’s acceptance evidence</summary>
+        <p>{l.validation}</p>
         <p>{l.mistake}</p>
-        <p>For this assignment, the acceptance evidence is: {l.validation}</p>
-        {l.stage < 3 && (
-          <>
-            <p>
-              The scalar descent example below illustrates the update. It is a
-              reference for gradient descent, not a solution to every
-              assignment.
-            </p>
-            <Code>{starter}</Code>
-          </>
-        )}
+        <p>
+          The coding bench checks a smaller component. Validate the complete
+          local project against the lesson’s worked example, edge cases, and
+          stated output.
+        </p>
       </details>
       <label className="completion-check">
         <input
@@ -1456,7 +1467,8 @@ function SettingsPage() {
         <p>
           No account, backend, or cloud synchronization. Export a backup before
           switching browsers or clearing site data. A backup includes your
-          notes, bookmarks, completions, pace, history, and quiz results.
+          notes, bookmarks, completions, pace, history, quiz results, and coding
+          drafts with their last test results.
         </p>
         <div className="actions">
           <button className="primary" onClick={() => downloadJSON(p)}>
@@ -1559,6 +1571,7 @@ const nav = [
   ["/roadmap", "Learning roadmap", Map],
   ["/library", "Lesson library", BookOpen],
   ["/playground", "Playground", FlaskConical],
+  ["/practice", "Coding bench", Code2],
   ["/projects", "Projects & labs", Code2],
   ["/week-one", "Your first week", GraduationCap],
   ["/bookmarks", "Bookmarks", Bookmark],
@@ -1726,6 +1739,7 @@ function Shell() {
               <Route path="/library" element={<Library />} />
               <Route path="/lesson/:id" element={<Watch />} />
               <Route path="/playground" element={<Playgrounds />} />
+              <Route path="/practice" element={<CodingPractice />} />
               <Route path="/projects" element={<Projects />} />
               <Route path="/week-one" element={<WeekOne />} />
               <Route path="/bookmarks" element={<Library bookmarks />} />

@@ -8,6 +8,12 @@ export default defineConfig({
       output: {
         manualChunks: {
           math: ["katex"],
+          "editor-core": ["@codemirror/view", "@codemirror/state"],
+          "editor-language": ["@codemirror/lang-cpp"],
+          course: [
+            "./src/content/curriculum.json",
+            "./src/content/challenges.json",
+          ],
           react: ["react", "react-dom", "react-router-dom"],
         },
       },
